@@ -44,7 +44,7 @@ private:
     std::vector<Vec3> vertices;
     std::vector<unsigned int> indices;
 
-    bool newObject=true;
+    bool newObject=true; //BOOL to see if we need the normalized form (not applied in translation)
 
     Mat4x4 matModel = {1, 0.0, 0.0, 0.0,
                        0.0, 1.0, 0.0, 0.0,

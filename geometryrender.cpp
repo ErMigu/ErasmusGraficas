@@ -125,7 +125,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
                 matrixRoutinesAndOBJ::readOBJ(filename, vertices, indices);
 
-                this->newObject=true;
+                this->newObject=true; //change to new object mode
                 loadGeometry();
                 display();
                 break;
