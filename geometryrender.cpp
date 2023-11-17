@@ -55,7 +55,6 @@ void GeometryRender::loadGeometry(void)
         matrixRoutinesAndOBJ::normalizeObject(vertices);
     }
 
-
     glUseProgram(program);
     glBindVertexArray(vao);
 
@@ -101,7 +100,7 @@ void GeometryRender::display()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Call OpenGL to draw the triangle
-    glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 
     // Not to be called in release...
     debugShader();
