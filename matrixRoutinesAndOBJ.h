@@ -241,6 +241,7 @@ class matrixRoutinesAndOBJ {
             }
 
         }
+        std::cout << indices.size();
         objFile.close();
         /*//PRINT
         for (const auto& v : vertices) {std::cout << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;}
