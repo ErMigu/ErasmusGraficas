@@ -48,10 +48,10 @@ void GeometryRender::initialize()
 
 void GeometryRender::loadGeometry(void)
 {
-    if(vertices.empty()){
+    if(vertices.empty()){ //at first the sphere is loaded
         matrixRoutinesAndOBJ::readOBJ("sphere",vertices,indices);
     }
-    if(newObject){
+    if(newObject){ //we only normalize objects that are loaded, not rotation or translation
         matrixRoutinesAndOBJ::normalizeObject(vertices);
     }
 
@@ -116,7 +116,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
     if (action == GLFW_PRESS) {
         std::string filename;
         switch (key) {
-            case GLFW_KEY_O:
+            case GLFW_KEY_O: //change obj case
                 std::cout << "Enter the name of the .obj file: ";
                 std::cin >> filename;
 
@@ -130,7 +130,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_LEFT:
+            case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::rotatey(vertices, 10.0f);
                 this->newObject=false;
@@ -138,7 +138,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_RIGHT:
+            case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::rotatey(vertices, -10.0f);
                 this->newObject=false;
@@ -146,7 +146,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_UP:
+            case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::rotatex(vertices, 10.0f);
                 this->newObject=false;
@@ -154,7 +154,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_DOWN:
+            case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::rotatex(vertices, -10.0f);
                 this->newObject=false;
@@ -162,7 +162,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_J:
+            case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::translate(vertices, -0.1f, 0.0f, 0.0f);
                 this->newObject=false;
@@ -170,7 +170,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_L:
+            case GLFW_KEY_L: //translate case
                 std::cout << "L key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::translate(vertices, 0.1f, 0.0f, 0.0f);
                 this->newObject=false;
@@ -178,7 +178,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_I:
+            case GLFW_KEY_I: //translate case
                 std::cout << "I key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::translate(vertices, 0.0f, 0.1f, 0.0f);
                 this->newObject=false;
@@ -186,7 +186,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 display();
                 break;
 
-            case GLFW_KEY_K:
+            case GLFW_KEY_K: //translate case
                 std::cout << "K key pressed." << std::endl;
                 vertices = matrixRoutinesAndOBJ::translate(vertices, 0.0f, -0.1f, 0.0f);
                 this->newObject=false;

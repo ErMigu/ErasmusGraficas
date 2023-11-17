@@ -24,6 +24,7 @@ class glfwCallbackManager
             app->resizeCallback(window,width,height);
     }
 
+    //callback as key detection
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
         if(app)

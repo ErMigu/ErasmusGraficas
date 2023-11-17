@@ -14,12 +14,11 @@
 // Macro for index to buffer pointer conversion
 #define BUFFER_OFFSET(i) (reinterpret_cast<char*>(0 + (i)))
 
-// Vector and matrix operations
 struct Vec3 {
     float values[3];
 
 public:
-    // Constructor
+    //constructor
     Vec3 (const float x, const float y, const float z) {
         this->values[0] = x;
         this->values[1] = y;
@@ -32,12 +31,12 @@ public:
         this->values[2] = 0;
     }
 
-    // Access
+    //cccess
     float x() const { return values[0]; }
     float y() const { return values[1]; }
     float z() const { return values[2]; }
 
-    // Modify
+    //modify
     void x(float val) { values[0] = val; }
     void y(float val) { values[1] = val; }
     void z(float val) { values[2] = val; }
