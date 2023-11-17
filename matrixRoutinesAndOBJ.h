@@ -283,7 +283,7 @@ class matrixRoutinesAndOBJ {
         Vec3 midPoint(
                 (minVertex.x() + maxVertex.x()) / 2.0f,
                 (minVertex.y() + maxVertex.y()) / 2.0f,
-                (minVertex.z() + maxVertex.z()) / 2.0f
+                (minVertex.z() + maxVertex.z()) / 2.0f);
         //normalize
         for (auto& vertex : vertices) {
             vertex.x((vertex.x() - midPoint.x()) * scale);
