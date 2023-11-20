@@ -2,6 +2,7 @@
 // Created by migue on 02/11/2023.
 //
 #include <vector>
+#include <limits>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -10,6 +11,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "3dstudio.h"
+#include "geometryrender.h"
 
 class matrixRoutinesAndOBJ {
     public:
@@ -70,7 +72,7 @@ class matrixRoutinesAndOBJ {
 //-----------------------------------------
 
     /**Direct translation function**/
-    static std::vector<Vec3> translate(const std::vector<Vec3>& vectors, float dx, float dy, float dz) {
+    static std::vector<std::vector<float>> translate(float dx, float dy, float dz) {
         std::vector<std::vector<float>> M{
                 {1, 0, 0, dx},
                 {0, 1, 0, dy},
@@ -78,11 +80,11 @@ class matrixRoutinesAndOBJ {
                 {0, 0, 0, 1}
         };
 
-        return mulMatrixVectorT(M, vectors);
+        return M;
     }
 
     /**Direct scaling function**/
-    static std::vector<Vec3> scale(const std::vector<Vec3>& vectors, float sx, float sy, float sz) {
+    static std::vector<std::vector<float>> scale(float sx, float sy, float sz) {
         std::vector<std::vector<float>> M{
                 {sx, 0, 0, 0},
                 {0, sy, 0, 0},
@@ -90,119 +92,80 @@ class matrixRoutinesAndOBJ {
                 {0, 0, 0, 1}
         };
 
-        return mulMatrixVectorR(M, vectors);
+        return M;
     }
 
     /**ROTATION NEED DEGREE -> RAD**/
     /**Direct rotation around x-axis**/
-        static std::vector<Vec3> rotatex(const std::vector<Vec3>& vectors, float degree) {
-            //getting the center of the object
-            Vec3 center(0.0f, 0.0f, 0.0f);
-            for (const Vec3& vec : vectors) {
-                center.x(center.x() + vec.x());
-                center.y(center.y() + vec.y());
-                center.z(center.z() + vec.z());
-            }
-            center.x(center.x() / vectors.size());
-            center.y(center.y() / vectors.size());
-            center.z(center.z() / vectors.size());
-
-            //translate to 0,0,0
-            std::vector<Vec3> translatedVectors;
-            for (const Vec3& vec : vectors) {
-                translatedVectors.push_back(Vec3(vec.x() - center.x(), vec.y() - center.y(), vec.z() - center.z()));
-            }
-            float rad = degree * M_PI / 180.0f;
-            std::vector<std::vector<float>> M{
-                    {1, 0, 0, 0},
-                    {0, std::cos(rad), -std::sin(rad), 0},
-                    {0, std::sin(rad), std::cos(rad), 0},
-                    {0, 0, 0, 1}
-            };
-
-            //rotate
-            std::vector<Vec3> rotatedVectors = mulMatrixVectorR(M, translatedVectors);
-
-            //translate to the original place
-            std::vector<Vec3> finalVectors;
-            for (const Vec3& vec : rotatedVectors) {
-                finalVectors.push_back(Vec3(vec.x() + center.x(), vec.y() + center.y(), vec.z() + center.z()));
-            }
-            return finalVectors;
-        }
-
-    /**Direct rotation around y-axis**/
-    static std::vector<Vec3> rotatey(const std::vector<Vec3>& vectors, float degree) {
+    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        for (const Vec3& vec : vectors) {
-            center.x(center.x() + vec.x());
-            center.y(center.y() + vec.y());
-            center.z(center.z() + vec.z());
-        }
-        center.x(center.x() / vectors.size());
-        center.y(center.y() / vectors.size());
-        center.z(center.z() / vectors.size());
+        center= calculateCenter(vectors,matModel);
+
+        //translate to 0,0,0
+        std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
+
+        //rotate
+        float rad = degree * M_PI / 180.0f;
+        std::vector<std::vector<float>> M2{
+                {1, 0, 0, 0},
+                {0, std::cos(rad), -std::sin(rad), 0},
+                {0, std::sin(rad), std::cos(rad), 0},
+                {0, 0, 0, 1}
+        };
+
+        //translate to the original place
+        std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
+        std::vector<std::vector<float>> aux = mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
+        return aux;
+    }
+
+    /**Direct rotation around y-axis**/
+    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
+        //getting the center of the object
+        Vec3 center(0.0f, 0.0f, 0.0f);
+        center= calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
-        for (const Vec3& vec : vectors) {
-            translatedVectors.push_back(Vec3(vec.x() - center.x(), vec.y() - center.y(), vec.z() - center.z()));
-        }
+        std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
+
+        //rotate
         float rad = degree * M_PI / 180.0f;
-        std::vector<std::vector<float>> M{
+        std::vector<std::vector<float>> M2{
                 {std::cos(rad), 0, -std::sin(rad), 0},
                 {0, 1, 0, 0},
                 {std::sin(rad), 0, std::cos(rad), 0},
                 {0, 0, 0, 1}
         };
 
-        //rotate
-        std::vector<Vec3> rotatedVectors = mulMatrixVectorR(M, translatedVectors);
-
         //translate to the original place
-        std::vector<Vec3> finalVectors;
-        for (const Vec3& vec : rotatedVectors) {
-            finalVectors.push_back(Vec3(vec.x() + center.x(), vec.y() + center.y(), vec.z() + center.z()));
-        }
-        return finalVectors;
+        std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
+        return mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
     }
 
     /**Direct rotation around y-axis**/
-    static std::vector<Vec3> rotatez(const std::vector<Vec3>& vectors, float degree) {
+    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        for (const Vec3& vec : vectors) {
-            center.x(center.x() + vec.x());
-            center.y(center.y() + vec.y());
-            center.z(center.z() + vec.z());
-        }
-        center.x(center.x() / vectors.size());
-        center.y(center.y() / vectors.size());
-        center.z(center.z() / vectors.size());
+        center= calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
-        for (const Vec3& vec : vectors) {
-            translatedVectors.push_back(Vec3(vec.x() - center.x(), vec.y() - center.y(), vec.z() - center.z()));
-        }
+        std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
+
+        //rotate
         float rad = degree * M_PI / 180.0f;
-        std::vector<std::vector<float>> M{
+        std::vector<std::vector<float>> M2{
                 {std::cos(rad), -std::sin(rad), 0, 0},
                 {std::sin(rad), std::cos(rad), 0, 0},
                 {0, 0, 1, 0},
                 {0, 0, 0, 1}
         };
 
-        //rotate
-        std::vector<Vec3> rotatedVectors = mulMatrixVectorR(M, translatedVectors);
-
         //translate to the original place
-        std::vector<Vec3> finalVectors;
-        for (const Vec3& vec : rotatedVectors) {
-            finalVectors.push_back(Vec3(vec.x() + center.x(), vec.y() + center.y(), vec.z() + center.z()));
-        }
-        return finalVectors;
+        std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
+        return mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
     }
 
 
@@ -241,18 +204,11 @@ class matrixRoutinesAndOBJ {
             }
 
         }
-        std::cout << indices.size();
         objFile.close();
-        /*//PRINT
-        for (const auto& v : vertices) {std::cout << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;}
-        for (size_t i = 0; i < indices.size(); i += 3) { std::cout << "f "<< indices[i] << " "<< indices[i + 1] << " "<< indices[i + 2] << std::endl;}
-        */
     }
 
-    static void normalizeObject(std::vector<Vec3>& vertices) {
-        if (vertices.empty()) return;
-
-        // Max, Min values for x,y,z
+    static std::vector<std::vector<float>> normalizeObject(std::vector<Vec3>& vertices) {
+        //max, min values for x,y,z
         Vec3 minVertex = vertices[0];
         Vec3 maxVertex = vertices[0];
 
@@ -266,7 +222,7 @@ class matrixRoutinesAndOBJ {
             if (vertex.z() > maxVertex.z()) maxVertex.z(vertex.z());
         }
 
-        // Calculate the scale we are looking for
+        //calculate scale
         float maxXRange = maxVertex.x() - minVertex.x();
         float maxYRange = maxVertex.y() - minVertex.y();
         float maxZRange = maxVertex.z() - minVertex.z();
@@ -274,24 +230,45 @@ class matrixRoutinesAndOBJ {
         float maxRange = std::max(maxXRange, std::max(maxYRange, maxZRange));
         float scale = 1.0f / maxRange;
 
-        // Normalize
-        vertices=matrixRoutinesAndOBJ::scale(vertices,scale,scale,scale);
-
-        /*
-        //IF THE OBJ HAS NOT BEEN BUILT IN THE CENTER, WE NEED
-        //TO THINK ALSO ABOUT THE BOUNDING BOX AND WHERE IS IT'S
-        //MIDDLE POINT
-        Vec3 midPoint(
-                (minVertex.x() + maxVertex.x()) / 2.0f,
-                (minVertex.y() + maxVertex.y()) / 2.0f,
-                (minVertex.z() + maxVertex.z()) / 2.0f);
         //normalize
-        for (auto& vertex : vertices) {
-            vertex.x((vertex.x() - midPoint.x()) * scale);
-            vertex.y((vertex.y() - midPoint.y()) * scale);
-            vertex.z((vertex.z() - midPoint.z()) * scale);
+        std::vector<std::vector<float>> aux= matrixRoutinesAndOBJ::scale(scale,scale,scale);
+        for(unsigned int i=0; i<vertices.size(); i++){
+            vertices[i].x(vertices[i].x()*scale);
+            vertices[i].y(vertices[i].y()*scale);
+            vertices[i].z(vertices[i].z()*scale);
         }
-        */
+
+        return aux;
+    }
+
+    static Vec3 calculateCenter(const std::vector<Vec3>& vectors, Mat4x4 matModel) {
+        //var
+        float minX = std::numeric_limits<float>::max();
+        float minY = std::numeric_limits<float>::max();
+        float minZ = std::numeric_limits<float>::max();
+        float maxX = -std::numeric_limits<float>::max();
+        float maxY = -std::numeric_limits<float>::max();
+        float maxZ = -std::numeric_limits<float>::max();
+
+        //apply mat and see if is max min or nothing
+        for (const Vec3& vec : vectors) {
+            float x = matModel[0] * vec.x() + matModel[1] * vec.y() + matModel[2] * vec.z() + matModel[3];
+            float y = matModel[4] * vec.x() + matModel[5] * vec.y() + matModel[6] * vec.z() + matModel[7];
+            float z = matModel[8] * vec.x() + matModel[9] * vec.y() + matModel[10] * vec.z() + matModel[11];
+            minX = std::min(minX, x);
+            minY = std::min(minY, y);
+            minZ = std::min(minZ, z);
+            maxX = std::max(maxX, x);
+            maxY = std::max(maxY, y);
+            maxZ = std::max(maxZ, z);
+        }
+
+        //calculate center
+        float centerX = (minX + maxX) / 2.0f;
+        float centerY = (minY + maxY) / 2.0f;
+        float centerZ = (minZ + maxZ) / 2.0f;
+
+        return Vec3(centerX, centerY, centerZ);
     }
 
 };

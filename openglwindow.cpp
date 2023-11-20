@@ -197,9 +197,7 @@ OpenGLWindow::initProgram(const string vShaderFile, const string fShaderFile) co
 void 
 OpenGLWindow::resizeCallback(GLFWwindow* window, int width, int height)
 {
-    if (glfwGetCurrentContext() == nullptr)
-        return;
-    glViewport(0, 0, width, height);
+    //empty
 }
 
 // GLFW error callback function

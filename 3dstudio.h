@@ -31,7 +31,7 @@ public:
         this->values[2] = 0;
     }
 
-    //cccess
+    //acccess
     float x() const { return values[0]; }
     float y() const { return values[1]; }
     float z() const { return values[2]; }

@@ -48,13 +48,14 @@ void GeometryRender::initialize()
 
 void GeometryRender::loadGeometry(void)
 {
+    resetMatModel();
+
     if(vertices.empty()){ //at first the sphere is loaded
         matrixRoutinesAndOBJ::readOBJ("sphere",vertices,indices);
-    }
-    if(newObject){ //we only normalize objects that are loaded, not rotation or translation
+        matrixRoutinesAndOBJ::normalizeObject(vertices);
+    }else{
         matrixRoutinesAndOBJ::normalizeObject(vertices);
     }
-
 
     glUseProgram(program);
     glBindVertexArray(vao);
@@ -96,6 +97,10 @@ void GeometryRender::debugShader(void) const
 void GeometryRender::display()
 {
     glUseProgram(program);
+
+    locModel = glGetUniformLocation(program,"M");
+    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+
     glBindVertexArray(vao);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -125,74 +130,100 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
                 matrixRoutinesAndOBJ::readOBJ(filename, vertices, indices);
 
-                this->newObject=true; //change to new object mode
                 loadGeometry();
                 display();
                 break;
 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::rotatey(vertices, 10.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::rotatey(vertices, 10.0f, matModel));
                 display();
                 break;
 
             case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::rotatey(vertices, -10.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::rotatey(vertices, -10.0f, matModel));
                 display();
                 break;
 
             case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::rotatex(vertices, 10.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::rotatex(vertices, 10.0f, matModel));
                 display();
                 break;
 
             case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::rotatex(vertices, -10.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::rotatex(vertices, -10.0f, matModel));
                 display();
                 break;
 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::translate(vertices, -0.1f, 0.0f, 0.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f));
                 display();
                 break;
 
             case GLFW_KEY_L: //translate case
                 std::cout << "L key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::translate(vertices, 0.1f, 0.0f, 0.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f));
                 display();
                 break;
 
             case GLFW_KEY_I: //translate case
                 std::cout << "I key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::translate(vertices, 0.0f, 0.1f, 0.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f));
                 display();
                 break;
 
             case GLFW_KEY_K: //translate case
                 std::cout << "K key pressed." << std::endl;
-                vertices = matrixRoutinesAndOBJ::translate(vertices, 0.0f, -0.1f, 0.0f);
-                this->newObject=false;
-                loadGeometry();
+                modMatModel(matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f));
                 display();
                 break;
         }
     }
 }
+
+void GeometryRender::modMatModel(const std::vector<std::vector<float>>& m) {
+    //mat4 -> array<array<float>>
+    std::vector<std::vector<float>> matModelVec{
+            {matModel[0], matModel[1], matModel[2], matModel[3]},
+            {matModel[4], matModel[5], matModel[6], matModel[7]},
+            {matModel[8], matModel[9], matModel[10], matModel[11]},
+            {matModel[12], matModel[13], matModel[14], matModel[15]}
+    };
+
+    //multiply
+    std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matModelVec);
+
+    //array<array<float>> -> mat4
+    matModel[0] = result[0][0];
+    matModel[1] = result[0][1];
+    matModel[2] = result[0][2];
+    matModel[3] = result[0][3];
+    matModel[4] = result[1][0];
+    matModel[5] = result[1][1];
+    matModel[6] = result[1][2];
+    matModel[7] = result[1][3];
+    matModel[8] = result[2][0];
+    matModel[9] = result[2][1];
+    matModel[10] = result[2][2];
+    matModel[11] = result[2][3];
+    matModel[12] = result[3][0];
+    matModel[13] = result[3][1];
+    matModel[14] = result[3][2];
+    matModel[15] = result[3][3];
+}
+
+
+void GeometryRender::resetMatModel() {
+    for (int i = 0; i < 16; ++i) {
+        if (i % 5 == 0) {
+            matModel[i] = 1.0f;
+        } else {
+            matModel[i] = 0.0f;
+        }
+    }
+}
+

@@ -23,7 +23,8 @@ public:
 
 
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
+    void modMatModel(const std::vector<std::vector<float>> &m);
+    void resetMatModel();
 
 private:
     GLuint program;
@@ -44,11 +45,9 @@ private:
     std::vector<Vec3> vertices;
     std::vector<unsigned int> indices;
 
-    bool newObject=true; //BOOL to see if we need the normalized form (not applied in translation)
-
-    Mat4x4 matModel = {1, 0.0, 0.0, 0.0,
-                       0.0, 1.0, 0.0, 0.0,
-                       0.0, 0.0, 1.0, 0.0,
-                       0.0, 0.0, 0.0, 1.0};
+    Mat4x4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f, 0.0f,
+                       0.0f, 0.0, 1.0, 0.0f,
+                       0.0f, 0.0f, 0.0f, 1.0f};
 
 };
