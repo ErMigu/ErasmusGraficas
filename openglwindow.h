@@ -8,10 +8,13 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
+#include "imgui.h"
+#include "ImGuiFileDialog.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "3dstudio.h"
 
-
+const float pi_f = 3.1415926f;
 
 class OpenGLWindow
 {
@@ -40,9 +43,11 @@ protected:
 
     void reshape(const int width, const int height) const;
 
-private:
-    GLFWwindow* glfwWindow;
     int windowWidth = 0;
     int windowHeight = 0;
 
+private:
+    virtual void DrawGui()=0;
+
+    GLFWwindow* glfwWindow;
 };

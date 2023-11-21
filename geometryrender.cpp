@@ -49,11 +49,7 @@ void GeometryRender::initialize()
 void GeometryRender::loadGeometry(void)
 {
     resetMatModel();
-
-    if(vertices.empty()){ //at first the sphere is loaded
-        matrixRoutinesAndOBJ::readOBJ("sphere",vertices,indices);
-        matrixRoutinesAndOBJ::normalizeObject(vertices);
-    }else{
+    if(!vertices.empty()){
         matrixRoutinesAndOBJ::normalizeObject(vertices);
     }
 
@@ -65,7 +61,11 @@ void GeometryRender::loadGeometry(void)
     glEnableVertexAttribArray(locVertices);
 
     locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
     glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
+    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
 
     // Load object data to the array buffer and index array
     size_t vSize = vertices.size()*sizeof(Vec3);
@@ -99,7 +99,12 @@ void GeometryRender::display()
     glUseProgram(program);
 
     locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
+
     glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
+    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
 
     glBindVertexArray(vao);
 
@@ -137,6 +142,9 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
                 modMatModel(matrixRoutinesAndOBJ::rotatey(vertices, 10.0f, matModel));
+                for (int i = 0; i < 16; ++i) {
+                    cout<< matModel[i]<<" ";
+                }
                 display();
                 break;
 
@@ -161,6 +169,9 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
                 modMatModel(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f));
+                for (int i = 0; i < 16; ++i) {
+                    cout<< matModel[i]<<" ";
+                }
                 display();
                 break;
 
@@ -226,4 +237,93 @@ void GeometryRender::resetMatModel() {
         }
     }
 }
+
+
+void GeometryRender::DrawGui()
+{
+    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
+
+    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
+    static ImGuiFileDialog fileDialog;
+
+    ImGui::Begin("3D Studio");
+
+    if (ImGui::CollapsingHeader("OBJ File")) {
+        ImGui::Text("OBJ file: %s", objFileName.c_str());
+        if (ImGui::Button("Open File"))
+            fileDialog.OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", "./obj");
+
+        if (fileDialog.Display("ChooseFileDlgKey")) {
+            if (fileDialog.IsOk() == true) {
+                objFileName = fileDialog.GetCurrentFileName();
+                objFilePath = fileDialog.GetCurrentPath();
+                cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
+
+                vertices.clear();
+                indices.clear();
+                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
+                matrixRoutinesAndOBJ::normalizeObject(vertices);
+
+                //aux[0][0]=left,aux[0][1]bottom=,aux[0][2]=-near
+                //aux[1][0]=right,aux[1][1]=top,aux[1][2]=-far
+                array<Vec3,2> aux = getNormalizationPoint(vertices);
+
+                loadGeometry();
+                display();
+            }
+            fileDialog.Close();
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Projection")) {
+        const char* items[] = {"Perspective", "Parallel" };
+        static int proj_current_idx = 0;
+        if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
+        if (proj_current_idx == 0) {
+            ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+
+        }
+        if (proj_current_idx == 1) {
+            ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
+            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+        }
+    }
+
+    ImGui::End();
+}
+
+std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices) {
+    // Inicializa los puntos con el primer vértice como punto de partida
+    Vec3 left_bottom_near = vertices[0];
+    Vec3 right_top_far = vertices[0];
+
+    for (const auto& vertex : vertices) {
+        // Encuentra el punto más a la izquierda, más abajo y más cercano
+        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
+        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
+        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
+
+        // Encuentra el punto más a la derecha, más arriba y más lejano
+        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
+        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
+        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
+    }
+
+
+    // Devuelve el array con los puntos de normalización
+    std::cout << "Left Bottom Near Point: "
+              << "x: " << left_bottom_near.x()
+              << ", y: " << left_bottom_near.y()
+              << ", z: " << left_bottom_near.z() << std::endl;
+
+    std::cout << "Right Top Far Point: "
+              << "x: " << right_top_far.x()
+              << ", y: " << right_top_far.y()
+              << ", z: " << right_top_far.z() << std::endl;
+    return {left_bottom_near, right_top_far};
+}
+
 

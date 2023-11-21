@@ -2,9 +2,11 @@
 
 in vec3 vPosition;
 uniform mat4 M;
+uniform mat4 V;
+uniform mat4 P;
 
 void main()
 {
-    gl_Position = M*vec4(vPosition, 1.0);
+    gl_Position = P*V*M*vec4(vPosition, 1.0);
 }
 

@@ -21,12 +21,15 @@ public:
     void loadgeometry();
     virtual void display() override;
 
-
+    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices);
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     void modMatModel(const std::vector<std::vector<float>> &m);
     void resetMatModel();
 
+    void DrawGui();
+
 private:
+    // Program
     GLuint program;
 
     // OpenGL buffers
@@ -37,6 +40,8 @@ private:
     // OpenGL attribute locations
     GLuint locVertices;
     GLuint locModel;
+    GLuint locProjection;
+    GLuint locView;
 
     void debugShader(void) const;
     void loadGeometry(void);
@@ -45,7 +50,27 @@ private:
     std::vector<Vec3> vertices;
     std::vector<unsigned int> indices;
 
+    // GuiVar
+    std::string objFileName;
+    std::string objFilePath;
+
+    float fov = 60.0f;
+    float farplane = 500.0f;
+    float top = 1.0f;
+    float obliqueScale = 0.0f;
+    float obliqueAngleRad = pi_f/4.0f;
+
     Mat4x4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f, 0.0f,
+                       0.0f, 0.0, 1.0, 0.0f,
+                       0.0f, 0.0f, 0.0f, 1.0f};
+
+    Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f, 0.0f,
+                       0.0f, 0.0, 1.0, 0.0f,
+                       0.0f, 0.0f, 0.0f, 1.0f};
+
+    Mat4x4 P = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
                        0.0f, 0.0, 1.0, 0.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};

@@ -172,7 +172,7 @@ class matrixRoutinesAndOBJ {
 //-----------------------------------------
 
     static void readOBJ(const std::string& name, std::vector<Vec3>& vertices, std::vector<unsigned int>& indices) {
-        std::ifstream objFile("./Objs/" + name + ".obj");
+        std::ifstream objFile("./Objs/" + name);
         if (!objFile.is_open()) {
             throw std::runtime_error("Unable to open OBJ file!");
         }
@@ -207,6 +207,8 @@ class matrixRoutinesAndOBJ {
         objFile.close();
     }
 
+    ///TODO preguntar el tema de la normalizacion al profe, es decir si tiene que estar realmente normalizado en coordenadas o TOOOOODO pasa por el filtro y punto.
+    //make it fits in a 1x1x1 cube and center y the 0,0,0
     static std::vector<std::vector<float>> normalizeObject(std::vector<Vec3>& vertices) {
         //max, min values for x,y,z
         Vec3 minVertex = vertices[0];

@@ -50,6 +50,25 @@ OpenGLWindow::OpenGLWindow(string title, int width, int height)
         cout << "Decreace supported OpenGL version if needed." << endl;
     }
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    // Enable Gamepad Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(glfwWindow, true);
+    ImGui_ImplOpenGL3_Init(NULL);
+
     // Set graphics attributes
     glPointSize(5.0); // Unsupported in OpenGL ES 2.0
     glLineWidth(1.0);
@@ -62,6 +81,9 @@ OpenGLWindow::OpenGLWindow(string title, int width, int height)
 
 OpenGLWindow::~OpenGLWindow()
 {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
@@ -207,24 +229,33 @@ OpenGLWindow::errorCallback(int error, const char* description)
     cerr << "GLFW error: " << description << endl;
 }
 
-
-
 // Start the GLFW loop
 void 
 OpenGLWindow::start()
 {
+    //bool show_demo_window = false;
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(glfwWindow)) {
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Draw the gui
+        DrawGui();
+
         // Call display in geomentryRender to render the scene
         display();
-        
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // Swap buffers
         glfwSwapBuffers(glfwWindow);
 
         // Sleep and wait for an event
         glfwWaitEvents();
     }
-    
 }
 
 // Render the scene 
