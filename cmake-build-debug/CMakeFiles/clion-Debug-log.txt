@@ -1,1 +1,0 @@
-CMakeLists.txt not found in /home/kali/CLionProjects/ErasmusGraficas Select CMakeLists.txt

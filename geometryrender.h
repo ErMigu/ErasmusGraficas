@@ -21,10 +21,10 @@ public:
     void loadgeometry();
     virtual void display() override;
 
-    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices);
+    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices, Mat4x4 matModel, Mat4x4 V, Mat4x4 P);
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void modMatModel(const std::vector<std::vector<float>> &m);
-    void resetMatModel();
+    void modMat(const std::vector<std::vector<float>> &m, std::string nameMat);
+    void resetMatrix();
 
     void DrawGui();
 

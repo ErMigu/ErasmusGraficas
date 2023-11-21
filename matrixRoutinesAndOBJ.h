@@ -97,10 +97,10 @@ class matrixRoutinesAndOBJ {
 
     /**ROTATION NEED DEGREE -> RAD**/
     /**Direct rotation around x-axis**/
-    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
+    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel);
+        center= calculateCenter(vectors,matModel,V,P);
 
         //translate to 0,0,0
         std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
@@ -121,10 +121,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
+    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel);
+        center= calculateCenter(vectors,matModel,V,P);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
@@ -145,10 +145,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
+    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel);
+        center= calculateCenter(vectors,matModel,V,P);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
@@ -207,9 +207,8 @@ class matrixRoutinesAndOBJ {
         objFile.close();
     }
 
-    ///TODO preguntar el tema de la normalizacion al profe, es decir si tiene que estar realmente normalizado en coordenadas o TOOOOODO pasa por el filtro y punto.
     //make it fits in a 1x1x1 cube and center y the 0,0,0
-    static std::vector<std::vector<float>> normalizeObject(std::vector<Vec3>& vertices) {
+    static std::vector<std::vector<float>> normalizeObject(std::vector<Vec3>& vertices, bool changeVertices) {
         //max, min values for x,y,z
         Vec3 minVertex = vertices[0];
         Vec3 maxVertex = vertices[0];
@@ -234,16 +233,19 @@ class matrixRoutinesAndOBJ {
 
         //normalize
         std::vector<std::vector<float>> aux= matrixRoutinesAndOBJ::scale(scale,scale,scale);
-        for(unsigned int i=0; i<vertices.size(); i++){
-            vertices[i].x(vertices[i].x()*scale);
-            vertices[i].y(vertices[i].y()*scale);
-            vertices[i].z(vertices[i].z()*scale);
+        if(changeVertices){ //to apply to the vertex directly only the first time
+            for(unsigned int i=0; i<vertices.size(); i++){
+                vertices[i].x(vertices[i].x()*scale);
+                vertices[i].y(vertices[i].y()*scale);
+                vertices[i].z(vertices[i].z()*scale);
+            }
         }
 
         return aux;
     }
 
-    static Vec3 calculateCenter(const std::vector<Vec3>& vectors, Mat4x4 matModel) {
+    /**It returns the center point of the object**/
+    static Vec3 calculateCenter(const std::vector<Vec3>& vectors, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
         //var
         float minX = std::numeric_limits<float>::max();
         float minY = std::numeric_limits<float>::max();
@@ -254,15 +256,13 @@ class matrixRoutinesAndOBJ {
 
         //apply mat and see if is max min or nothing
         for (const Vec3& vec : vectors) {
-            float x = matModel[0] * vec.x() + matModel[1] * vec.y() + matModel[2] * vec.z() + matModel[3];
-            float y = matModel[4] * vec.x() + matModel[5] * vec.y() + matModel[6] * vec.z() + matModel[7];
-            float z = matModel[8] * vec.x() + matModel[9] * vec.y() + matModel[10] * vec.z() + matModel[11];
-            minX = std::min(minX, x);
-            minY = std::min(minY, y);
-            minZ = std::min(minZ, z);
-            maxX = std::max(maxX, x);
-            maxY = std::max(maxY, y);
-            maxZ = std::max(maxZ, z);
+            Vec3 aux= apply3Matrix(vec,matModel,V,P);
+            minX = std::min(minX, aux.x());
+            minY = std::min(minY, aux.y());
+            minZ = std::min(minZ, aux.z());
+            maxX = std::max(maxX, aux.x());
+            maxY = std::max(maxY, aux.y());
+            maxZ = std::max(maxZ, aux.z());
         }
 
         //calculate center
@@ -273,6 +273,12 @@ class matrixRoutinesAndOBJ {
         return Vec3(centerX, centerY, centerZ);
     }
 
+    /**get real position that I see on the screen**/
+    static Vec3 apply3Matrix(Vec3 point, Mat4x4 matModel, Mat4x4 V, Mat4x4 P){
+        return Vec3(P[0] * V[0] * matModel[0] * point.x() + P[1] * V[1] * matModel[1] * point.y() + P[2] * V[2] * matModel[2] * point.z() + matModel[3],
+                    P[4] * V[4] * matModel[4] * point.x() + P[5] * V[5] * matModel[5] * point.y() + P[6] * V[6] * matModel[6] * point.z() + matModel[7],
+                    P[8] * V[8] * matModel[8] * point.x() + P[9] * V[9] * matModel[9] * point.y() + P[10] * V[10] * matModel[10] * point.z() + matModel[11]);
+    }
 };
 
 

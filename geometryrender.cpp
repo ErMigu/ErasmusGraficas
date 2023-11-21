@@ -48,9 +48,9 @@ void GeometryRender::initialize()
 
 void GeometryRender::loadGeometry(void)
 {
-    resetMatModel();
+    resetMatrix();
     if(!vertices.empty()){
-        matrixRoutinesAndOBJ::normalizeObject(vertices);
+        matrixRoutinesAndOBJ::normalizeObject(vertices,true);
     }
 
     glUseProgram(program);
@@ -141,7 +141,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::rotatey(vertices, 10.0f, matModel));
+                modMat(matrixRoutinesAndOBJ::rotatey(vertices, 10.0f, matModel,V,P),"matModel");
                 for (int i = 0; i < 16; ++i) {
                     cout<< matModel[i]<<" ";
                 }
@@ -150,25 +150,25 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::rotatey(vertices, -10.0f, matModel));
+                modMat(matrixRoutinesAndOBJ::rotatey(vertices, -10.0f, matModel,V,P),"matModel");
                 display();
                 break;
 
             case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::rotatex(vertices, 10.0f, matModel));
+                modMat(matrixRoutinesAndOBJ::rotatex(vertices, 10.0f, matModel,V,P),"matModel");
                 display();
                 break;
 
             case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::rotatex(vertices, -10.0f, matModel));
+                modMat(matrixRoutinesAndOBJ::rotatex(vertices, -10.0f, matModel,V,P),"matModel");
                 display();
                 break;
 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f));
+                modMat(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f),"matModel");
                 for (int i = 0; i < 16; ++i) {
                     cout<< matModel[i]<<" ";
                 }
@@ -177,28 +177,28 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_L: //translate case
                 std::cout << "L key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f));
+                modMat(matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f),"matModel");
                 display();
                 break;
 
             case GLFW_KEY_I: //translate case
                 std::cout << "I key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f));
+                modMat(matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f),"matModel");
                 display();
                 break;
 
             case GLFW_KEY_K: //translate case
                 std::cout << "K key pressed." << std::endl;
-                modMatModel(matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f));
+                modMat(matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f),"matModel");
                 display();
                 break;
         }
     }
 }
 
-void GeometryRender::modMatModel(const std::vector<std::vector<float>>& m) {
+void GeometryRender::modMat(const std::vector<std::vector<float>>& m, std::string nameMat) {
     //mat4 -> array<array<float>>
-    std::vector<std::vector<float>> matModelVec{
+    std::vector<std::vector<float>> matAux{
             {matModel[0], matModel[1], matModel[2], matModel[3]},
             {matModel[4], matModel[5], matModel[6], matModel[7]},
             {matModel[8], matModel[9], matModel[10], matModel[11]},
@@ -206,29 +206,38 @@ void GeometryRender::modMatModel(const std::vector<std::vector<float>>& m) {
     };
 
     //multiply
-    std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matModelVec);
+    std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matAux);
 
-    //array<array<float>> -> mat4
-    matModel[0] = result[0][0];
-    matModel[1] = result[0][1];
-    matModel[2] = result[0][2];
-    matModel[3] = result[0][3];
-    matModel[4] = result[1][0];
-    matModel[5] = result[1][1];
-    matModel[6] = result[1][2];
-    matModel[7] = result[1][3];
-    matModel[8] = result[2][0];
-    matModel[9] = result[2][1];
-    matModel[10] = result[2][2];
-    matModel[11] = result[2][3];
-    matModel[12] = result[3][0];
-    matModel[13] = result[3][1];
-    matModel[14] = result[3][2];
-    matModel[15] = result[3][3];
+    if(nameMat=="matModel"){
+        //array<array<float>> -> mat4
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                matModel[i * 4 + j] = result[i][j];
+            }
+        }
+    }else{
+        if(nameMat=="V"){
+            //array<array<float>> -> mat4
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    V[i * 4 + j] = result[i][j];
+                }
+            }
+        }else{
+            if(nameMat=="P"){
+                //array<array<float>> -> mat4
+                for (int i = 0; i < 4; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        P[i * 4 + j] = result[i][j];
+                    }
+                }
+            }
+        }
+    }
 }
 
 
-void GeometryRender::resetMatModel() {
+void GeometryRender::resetMatrix() {
     for (int i = 0; i < 16; ++i) {
         if (i % 5 == 0) {
             matModel[i] = 1.0f;
@@ -242,12 +251,10 @@ void GeometryRender::resetMatModel() {
 void GeometryRender::DrawGui()
 {
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
-
     static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
     static ImGuiFileDialog fileDialog;
 
     ImGui::Begin("3D Studio");
-
     if (ImGui::CollapsingHeader("OBJ File")) {
         ImGui::Text("OBJ file: %s", objFileName.c_str());
         if (ImGui::Button("Open File"))
@@ -262,11 +269,7 @@ void GeometryRender::DrawGui()
                 vertices.clear();
                 indices.clear();
                 matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
-                matrixRoutinesAndOBJ::normalizeObject(vertices);
-
-                //aux[0][0]=left,aux[0][1]bottom=,aux[0][2]=-near
-                //aux[1][0]=right,aux[1][1]=top,aux[1][2]=-far
-                array<Vec3,2> aux = getNormalizationPoint(vertices);
+                matrixRoutinesAndOBJ::normalizeObject(vertices,true);
 
                 loadGeometry();
                 display();
@@ -283,19 +286,27 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
 
+            //aux[0][0]=left,aux[0][1]bottom=,aux[0][2]=-near
+            //aux[1][0]=right,aux[1][1]=top,aux[1][2]=-far
+            array<Vec3,2> aux = getNormalizationPoint(vertices, matModel, V, P);
+
+
+            //codigo de un view
         }
         if (proj_current_idx == 1) {
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
             ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
             ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+
+
+            //codigo del otro view
         }
     }
-
     ImGui::End();
 }
 
-std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices) {
+std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
     // Inicializa los puntos con el primer vértice como punto de partida
     Vec3 left_bottom_near = vertices[0];
     Vec3 right_top_far = vertices[0];
