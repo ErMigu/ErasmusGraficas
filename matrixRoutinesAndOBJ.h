@@ -15,7 +15,6 @@
 
 class matrixRoutinesAndOBJ {
     public:
-//-----------------------------------------
 
     /**Matrix4x4 X Matrix4x4**/
     static std::vector<std::vector<float>> mulMatrix4x4(const std::vector<std::vector<float>> &m1, const std::vector<std::vector<float>> &m2) {
@@ -95,7 +94,6 @@ class matrixRoutinesAndOBJ {
         return M;
     }
 
-    /**ROTATION NEED DEGREE -> RAD**/
     /**Direct rotation around x-axis**/
     static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
         //getting the center of the object
@@ -168,10 +166,13 @@ class matrixRoutinesAndOBJ {
         return mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
     }
 
-
 //-----------------------------------------
 
+    /**Reads the OBJfile**/
     static void readOBJ(const std::string& name, std::vector<Vec3>& vertices, std::vector<unsigned int>& indices) {
+        vertices.clear();
+        indices.clear();
+
         std::ifstream objFile("./Objs/" + name);
         if (!objFile.is_open()) {
             throw std::runtime_error("Unable to open OBJ file!");
@@ -205,9 +206,10 @@ class matrixRoutinesAndOBJ {
 
         }
         objFile.close();
+        normalizeObject(vertices,true);
     }
 
-    //make it fits in a 1x1x1 cube and center y the 0,0,0
+    /**Make it fits in a 1x1x1 cube and center y the 0,0,0**/
     static std::vector<std::vector<float>> normalizeObject(std::vector<Vec3>& vertices, bool changeVertices) {
         //max, min values for x,y,z
         Vec3 minVertex = vertices[0];
@@ -233,14 +235,22 @@ class matrixRoutinesAndOBJ {
 
         //normalize
         std::vector<std::vector<float>> aux= matrixRoutinesAndOBJ::scale(scale,scale,scale);
-        if(changeVertices){ //to apply to the vertex directly only the first time
+        if(changeVertices){ //to apply to the vertex directly only the first time, and move it to 0,0,0
+            Mat4x4 aux = {1.0f, 0.0f, 0.0f, 0.0f,
+                               0.0f, 1.0f, 0.0f, 0.0f,
+                               0.0f, 0.0, 1.0, 0.0f,
+                               0.0f, 0.0f, 0.0f, 1.0f};
+            Vec3 center = calculateCenter(vertices, aux, aux, aux);
             for(unsigned int i=0; i<vertices.size(); i++){
                 vertices[i].x(vertices[i].x()*scale);
+                vertices[i].x(vertices[i].x()-center.x()/2);
                 vertices[i].y(vertices[i].y()*scale);
+                vertices[i].y(vertices[i].y()-center.y()/2);
                 vertices[i].z(vertices[i].z()*scale);
+                vertices[i].z(vertices[i].z()-center.z()/2);
             }
+            calculateCenter(vertices, aux, aux, aux);
         }
-
         return aux;
     }
 
@@ -270,6 +280,8 @@ class matrixRoutinesAndOBJ {
         float centerY = (minY + maxY) / 2.0f;
         float centerZ = (minZ + maxZ) / 2.0f;
 
+        std::cout << centerX << " " << centerY << " " << centerZ << std::endl;
+
         return Vec3(centerX, centerY, centerZ);
     }
 
@@ -279,6 +291,7 @@ class matrixRoutinesAndOBJ {
                     P[4] * V[4] * matModel[4] * point.x() + P[5] * V[5] * matModel[5] * point.y() + P[6] * V[6] * matModel[6] * point.z() + matModel[7],
                     P[8] * V[8] * matModel[8] * point.x() + P[9] * V[9] * matModel[9] * point.y() + P[10] * V[10] * matModel[10] * point.z() + matModel[11]);
     }
+
 };
 
 

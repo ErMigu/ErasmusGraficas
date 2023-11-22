@@ -10,75 +10,7 @@
 
 using namespace std;
 
-
-// Initialize OpenGL
-void GeometryRender::initialize()
-{
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
-
-    // Create and initialize a program object with shaders
-    program = initProgram("vshader.glsl", "fshader.glsl");
-    // Installs the program object as part of current rendering state
-    glUseProgram(program);
-
-    // Creat a vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Create vertex buffer in the shared display list space and
-    // bind it as VertexBuffer (GL_ARRAY_BUFFER)
-    glGenBuffers( 1, &vBuffer);
-    glBindBuffer( GL_ARRAY_BUFFER, vBuffer);
-
-    /* Create buffer in the shared display list space and 
-       bind it as GL_ELEMENT_ARRAY_BUFFER */
-    glGenBuffers(1, &iBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
-
-    // Get locations of the attributes in the shader
-    locVertices = glGetAttribLocation( program, "vPosition");
-
-    glBindVertexArray(0);
-    glUseProgram(0);
-
-    loadGeometry();
-}
-
-
-void GeometryRender::loadGeometry(void)
-{
-    resetMatrix();
-    if(!vertices.empty()){
-        matrixRoutinesAndOBJ::normalizeObject(vertices,true);
-    }
-
-    glUseProgram(program);
-    glBindVertexArray(vao);
-
-    // Set the pointers of locVertices to the right places
-    glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-    glEnableVertexAttribArray(locVertices);
-
-    locModel = glGetUniformLocation(program,"M");
-    locProjection = glGetUniformLocation(program,"P");
-    locView = glGetUniformLocation(program,"V");
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
-    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
-
-    // Load object data to the array buffer and index array
-    size_t vSize = vertices.size()*sizeof(Vec3);
-    size_t iSize = indices.size()*sizeof(unsigned int);
-    glBufferData( GL_ARRAY_BUFFER, vSize, vertices.data(), GL_STATIC_DRAW );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, iSize, indices.data(), GL_STATIC_DRAW );
-
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
-
-// Check if any error has been reported from the shader
+/**Check if any error has been reported from the shader**/
 void GeometryRender::debugShader(void) const
 {
     GLint  logSize;
@@ -89,39 +21,9 @@ void GeometryRender::debugShader(void) const
         glGetProgramInfoLog( program, logSize, nullptr, &(logMsg[0]) );
         std::cerr << "Shader info log: " << logMsg << std::endl;
     }
-
 }
 
-
-// Render object
-void GeometryRender::display()
-{
-    glUseProgram(program);
-
-    locModel = glGetUniformLocation(program,"M");
-    locProjection = glGetUniformLocation(program,"P");
-    locView = glGetUniformLocation(program,"V");
-
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
-    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
-
-    glBindVertexArray(vao);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Call OpenGL to draw the triangle
-    glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
-
-    // Not to be called in release...
-    debugShader();
-
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
-
-// GLFW key callback function
+/**Key detection callback**/
 void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         std::string filename;
@@ -129,9 +31,6 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
             case GLFW_KEY_O: //change obj case
                 std::cout << "Enter the name of the .obj file: ";
                 std::cin >> filename;
-
-                vertices.clear();
-                indices.clear();
 
                 matrixRoutinesAndOBJ::readOBJ(filename, vertices, indices);
 
@@ -169,9 +68,6 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
                 modMat(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f),"matModel");
-                for (int i = 0; i < 16; ++i) {
-                    cout<< matModel[i]<<" ";
-                }
                 display();
                 break;
 
@@ -196,6 +92,204 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
     }
 }
 
+
+//--------------------------------------------------------
+
+
+/**Initialize OpenGL**/
+void GeometryRender::initialize()
+{
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+
+    // Create and initialize a program object with shaders
+    program = initProgram("vshader.glsl", "fshader.glsl");
+    // Installs the program object as part of current rendering state
+    glUseProgram(program);
+
+    // Creat a vertex array object
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Create vertex buffer in the shared display list space and
+    // bind it as VertexBuffer (GL_ARRAY_BUFFER)
+    glGenBuffers( 1, &vBuffer);
+    glBindBuffer( GL_ARRAY_BUFFER, vBuffer);
+
+    /* Create buffer in the shared display list space and 
+       bind it as GL_ELEMENT_ARRAY_BUFFER */
+    glGenBuffers(1, &iBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
+
+    // Get locations of the attributes in the shader
+    locVertices = glGetAttribLocation( program, "vPosition");
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    loadGeometry();
+}
+
+/**Only to load OBJs**/
+void GeometryRender::loadGeometry(void)
+{
+    resetMatrix();
+    if(vertices.empty()){
+        matrixRoutinesAndOBJ::readOBJ("teddy.obj",vertices,indices);
+    }
+
+    glUseProgram(program);
+    glBindVertexArray(vao);
+
+    // Set the pointers of locVertices to the right places
+    glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+    glEnableVertexAttribArray(locVertices);
+
+    locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
+    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
+    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
+
+    // Load object data to the array buffer and index array
+    size_t vSize = vertices.size()*sizeof(Vec3);
+    size_t iSize = indices.size()*sizeof(unsigned int);
+    glBufferData( GL_ARRAY_BUFFER, vSize, vertices.data(), GL_STATIC_DRAW );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, iSize, indices.data(), GL_STATIC_DRAW );
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+/**Render object and display**/
+void GeometryRender::display()
+{
+    glUseProgram(program);
+
+    locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
+
+    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
+    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
+
+    glBindVertexArray(vao);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Call OpenGL to draw the triangle
+    glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+
+    // Not to be called in release...
+    debugShader();
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+
+//--------------------------------------------------------
+
+
+/**Gui management**/
+void GeometryRender::DrawGui()
+{
+    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
+    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
+    static ImGuiFileDialog fileDialog;
+
+    ImGui::Begin("3D Studio");
+    if (ImGui::CollapsingHeader("OBJ File")) {
+        ImGui::Text("OBJ file: %s", objFileName.c_str());
+        if (ImGui::Button("Open File"))
+            fileDialog.OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", "./obj");
+
+        if (fileDialog.Display("ChooseFileDlgKey")) {
+            if (fileDialog.IsOk() == true) {
+                objFileName = fileDialog.GetCurrentFileName();
+                objFilePath = fileDialog.GetCurrentPath();
+                cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
+
+                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
+
+                loadGeometry();
+                display();
+            }
+            fileDialog.Close();
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Projection")) {
+        const char* items[] = {"Perspective", "Parallel" };
+        static int proj_current_idx = 0;
+        if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
+        if (proj_current_idx == 0) {
+            ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+
+            //aux[0][0]=left,aux[0][1]bottom=,aux[0][2]=-near
+            //aux[1][0]=right,aux[1][1]=top,aux[1][2]=-far
+            array<Vec3,2> aux = getNormalizationPoint(vertices, matModel, V, P);
+            std::vector<std::vector<float>> ST = {
+                    {2 / (aux[1][0] - aux[0][0]), 0, 0, -(aux[1][0] + aux[0][0]) / (aux[1][0] - aux[0][0])},
+                    {0, 2 / (aux[1][1] - aux[0][1]), 0, -(aux[1][1] + aux[0][1]) / (aux[1][1] - aux[0][1])},
+                    {0, 0, -2 / (-aux[1][2] + aux[0][2]), -(-aux[1][2] - aux[0][2]) / (-aux[1][2] + aux[0][2])},
+                    {0, 0, 0, 1}
+            };
+
+        }
+        if (proj_current_idx == 1) {
+            ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
+            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
+            ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
+            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+
+
+            //codigo del otro view
+        }
+    }
+    ImGui::End();
+}
+
+/**Give the 2 corners of the cube that contains the obj**/
+std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
+    // Inicializa los puntos con el primer vértice como punto de partida
+    Vec3 left_bottom_near = vertices[0];
+    Vec3 right_top_far = vertices[0];
+
+    for (const auto& vertex : vertices) {
+        // Encuentra el punto más a la izquierda, más abajo y más cercano
+        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
+        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
+        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
+
+        // Encuentra el punto más a la derecha, más arriba y más lejano
+        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
+        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
+        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
+    }
+
+
+    // Devuelve el array con los puntos de normalización
+    std::cout << "Left Bottom Near Point: "
+              << "x: " << left_bottom_near.x()
+              << ", y: " << left_bottom_near.y()
+              << ", z: " << left_bottom_near.z() << std::endl;
+
+    std::cout << "Right Top Far Point: "
+              << "x: " << right_top_far.x()
+              << ", y: " << right_top_far.y()
+              << ", z: " << right_top_far.z() << std::endl;
+    return {left_bottom_near, right_top_far};
+}
+
+
+//--------------------------------------------------------
+
+
+/**Used to apply a modification to the filter matrix**/
 void GeometryRender::modMat(const std::vector<std::vector<float>>& m, std::string nameMat) {
     //mat4 -> array<array<float>>
     std::vector<std::vector<float>> matAux{
@@ -236,105 +330,20 @@ void GeometryRender::modMat(const std::vector<std::vector<float>>& m, std::strin
     }
 }
 
-
+/**Reset the filter matrix completely**/
 void GeometryRender::resetMatrix() {
     for (int i = 0; i < 16; ++i) {
         if (i % 5 == 0) {
             matModel[i] = 1.0f;
+            V[i] = 1.0f;
+            P[i] = 1.0f;
         } else {
             matModel[i] = 0.0f;
+            V[i] = 0.0f;
+            P[i] = 0.0f;
         }
     }
 }
 
 
-void GeometryRender::DrawGui()
-{
-    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
-    static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
-    static ImGuiFileDialog fileDialog;
-
-    ImGui::Begin("3D Studio");
-    if (ImGui::CollapsingHeader("OBJ File")) {
-        ImGui::Text("OBJ file: %s", objFileName.c_str());
-        if (ImGui::Button("Open File"))
-            fileDialog.OpenDialog("ChooseFileDlgKey", "Choose File", ".obj", "./obj");
-
-        if (fileDialog.Display("ChooseFileDlgKey")) {
-            if (fileDialog.IsOk() == true) {
-                objFileName = fileDialog.GetCurrentFileName();
-                objFilePath = fileDialog.GetCurrentPath();
-                cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
-
-                vertices.clear();
-                indices.clear();
-                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
-                matrixRoutinesAndOBJ::normalizeObject(vertices,true);
-
-                loadGeometry();
-                display();
-            }
-            fileDialog.Close();
-        }
-    }
-
-    if (ImGui::CollapsingHeader("Projection")) {
-        const char* items[] = {"Perspective", "Parallel" };
-        static int proj_current_idx = 0;
-        if (ImGui::Combo("projektion", &proj_current_idx, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)));
-        if (proj_current_idx == 0) {
-            ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
-            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
-
-            //aux[0][0]=left,aux[0][1]bottom=,aux[0][2]=-near
-            //aux[1][0]=right,aux[1][1]=top,aux[1][2]=-far
-            array<Vec3,2> aux = getNormalizationPoint(vertices, matModel, V, P);
-
-
-            //codigo de un view
-        }
-        if (proj_current_idx == 1) {
-            ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
-            ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
-            ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
-            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
-
-
-            //codigo del otro view
-        }
-    }
-    ImGui::End();
-}
-
-std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
-    // Inicializa los puntos con el primer vértice como punto de partida
-    Vec3 left_bottom_near = vertices[0];
-    Vec3 right_top_far = vertices[0];
-
-    for (const auto& vertex : vertices) {
-        // Encuentra el punto más a la izquierda, más abajo y más cercano
-        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
-        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
-        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
-
-        // Encuentra el punto más a la derecha, más arriba y más lejano
-        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
-        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
-        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
-    }
-
-
-    // Devuelve el array con los puntos de normalización
-    std::cout << "Left Bottom Near Point: "
-              << "x: " << left_bottom_near.x()
-              << ", y: " << left_bottom_near.y()
-              << ", z: " << left_bottom_near.z() << std::endl;
-
-    std::cout << "Right Top Far Point: "
-              << "x: " << right_top_far.x()
-              << ", y: " << right_top_far.y()
-              << ", z: " << right_top_far.z() << std::endl;
-    return {left_bottom_near, right_top_far};
-}
-
-
+//--------------------------------------------------------
