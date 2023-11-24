@@ -95,10 +95,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation around x-axis**/
-    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
+    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel,V,P);
+        center= calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
         std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
@@ -119,10 +119,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
+    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel,V,P);
+        center= calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
@@ -143,10 +143,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
+    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel,V,P);
+        center= calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
         std::vector<Vec3> translatedVectors;
@@ -240,7 +240,7 @@ class matrixRoutinesAndOBJ {
                                0.0f, 1.0f, 0.0f, 0.0f,
                                0.0f, 0.0, 1.0, 0.0f,
                                0.0f, 0.0f, 0.0f, 1.0f};
-            Vec3 center = calculateCenter(vertices, aux, aux, aux);
+            Vec3 center = calculateCenter(vertices, aux);
             for(unsigned int i=0; i<vertices.size(); i++){
                 vertices[i].x(vertices[i].x()*scale);
                 vertices[i].x(vertices[i].x()-center.x()/2);
@@ -249,13 +249,13 @@ class matrixRoutinesAndOBJ {
                 vertices[i].z(vertices[i].z()*scale);
                 vertices[i].z(vertices[i].z()-center.z()/2);
             }
-            calculateCenter(vertices, aux, aux, aux);
+            calculateCenter(vertices, aux);
         }
         return aux;
     }
 
     /**It returns the center point of the object**/
-    static Vec3 calculateCenter(const std::vector<Vec3>& vectors, Mat4x4 matModel, Mat4x4 V, Mat4x4 P) {
+    static Vec3 calculateCenter(const std::vector<Vec3>& vectors, Mat4x4 matModel) {
         //var
         float minX = std::numeric_limits<float>::max();
         float minY = std::numeric_limits<float>::max();
@@ -266,7 +266,7 @@ class matrixRoutinesAndOBJ {
 
         //apply mat and see if is max min or nothing
         for (const Vec3& vec : vectors) {
-            Vec3 aux= apply3Matrix(vec,matModel,V,P);
+            Vec3 aux= apply3Matrix(vec,matModel);
             minX = std::min(minX, aux.x());
             minY = std::min(minY, aux.y());
             minZ = std::min(minZ, aux.z());
@@ -286,10 +286,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**get real position that I see on the screen**/
-    static Vec3 apply3Matrix(Vec3 point, Mat4x4 matModel, Mat4x4 V, Mat4x4 P){
-        return Vec3(P[0] * V[0] * matModel[0] * point.x() + P[1] * V[1] * matModel[1] * point.y() + P[2] * V[2] * matModel[2] * point.z() + matModel[3],
-                    P[4] * V[4] * matModel[4] * point.x() + P[5] * V[5] * matModel[5] * point.y() + P[6] * V[6] * matModel[6] * point.z() + matModel[7],
-                    P[8] * V[8] * matModel[8] * point.x() + P[9] * V[9] * matModel[9] * point.y() + P[10] * V[10] * matModel[10] * point.z() + matModel[11]);
+    static Vec3 apply3Matrix(Vec3 point, Mat4x4 mat){
+        return Vec3(mat[0] * point.x() + mat[1] * point.y() + mat[2] * point.z() + mat[3],
+                    mat[4] * point.x() + mat[5] * point.y() + mat[6] * point.z() + mat[7],
+                    mat[8] * point.x() + mat[9] * point.y() + mat[10] * point.z() + mat[11]);
     }
 
 };

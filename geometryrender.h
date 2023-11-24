@@ -21,10 +21,12 @@ public:
     void loadgeometry();
     virtual void display() override;
 
-    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices, Mat4x4 matModel, Mat4x4 V, Mat4x4 P);
+    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices);
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     void modMat(const std::vector<std::vector<float>> &m, std::string nameMat);
-    void resetMatrix();
+    void resetMatrix(std::string name);
+    void applyParallelView();
+    void applyPerspectiveView();
 
     void DrawGui();
 
@@ -58,7 +60,10 @@ private:
     float farplane = 500.0f;
     float top = 1.0f;
     float obliqueScale = 0.0f;
-    float obliqueAngleRad = pi_f/4.0f;
+    float obliqueAngleRad = 15.0f;
+
+    //for the gui
+    int proj_current_idx = 0;
 
     Mat4x4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
@@ -67,7 +72,7 @@ private:
 
     Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
-                       0.0f, 0.0, 1.0, 0.0f,
+                       0.0f, 0.0, 1.0, -2.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};
 
     Mat4x4 P = {1.0f, 0.0f, 0.0f, 0.0f,
