@@ -27,6 +27,7 @@ public:
     void resetMatrix(std::string name);
     void applyParallelView();
     void applyPerspectiveView();
+    void applyMove(float x, float y, float z);
 
     void DrawGui();
 
@@ -61,6 +62,11 @@ private:
     float top = 1.0f;
     float obliqueScale = 0.0f;
     float obliqueAngleRad = pi_f/4.0f;
+
+    float xMin=0;
+    float yMin=0;
+    float zMin=0;
+    float zMax=1;
 
     //for the gui
     int proj_current_idx = 0;

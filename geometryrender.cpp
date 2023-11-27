@@ -41,22 +41,22 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotatey(vertices, 10.0f, matModel),"matModel");
+                modMat(matrixRoutinesAndOBJ::rotate(vertices, 0.0f,10.0f,0.0f, matModel),"matModel");
                 break;
 
             case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotatey(vertices, -10.0f, matModel),"matModel");
+                modMat(matrixRoutinesAndOBJ::rotate(vertices, 0.0f, -10.0f, 0.0f, matModel),"matModel");
                 break;
 
             case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotatex(vertices, 10.0f, matModel),"matModel");
+                modMat(matrixRoutinesAndOBJ::rotate(vertices, 10.0f, 0.0f, 0.0f, matModel),"matModel");
                 break;
 
             case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotatex(vertices, -10.0f, matModel),"matModel");
+                modMat(matrixRoutinesAndOBJ::rotate(vertices, -10.0f, 0.0f, 0.0f, matModel),"matModel");
                 break;
 
             case GLFW_KEY_J: //translate case
@@ -78,12 +78,36 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 std::cout << "K key pressed." << std::endl;
                 modMat(matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f),"matModel");
                 break;
+
+            case GLFW_KEY_E: //Camera positive y-axis
+                applyMove(0.0f, 10.0f, 0.0f);
+                break;
+
+            case GLFW_KEY_Q: //Camera negative y-axis
+                applyMove(0.0f, -10.0f, 0.0f);
+                break;
+
+            case GLFW_KEY_D: //Camera positive x-axis
+                applyMove(10.0f, 0.0f, 0.0f);
+                break;
+
+            case GLFW_KEY_A: //Camera negative x-axis
+                applyMove(-10.0f, 0.0f, 0.0f);
+                break;
+
+            case GLFW_KEY_W: //Camera negative z-axis
+                applyMove(0.0f, 0.0f, -10.0f);
+                break;
+
+            case GLFW_KEY_S: //Camera positive z-axis
+                applyMove(0.0f, 0.0f, 10.0f);
+                break;
         }
         if (proj_current_idx == 0) {
-
+            //applyPerspectiveView();
         }
         if (proj_current_idx == 1) {
-            applyParallelView();
+            //applyParallelView();
         }
         display();
     }
@@ -157,6 +181,9 @@ void GeometryRender::loadGeometry(void)
 
     glBindVertexArray(0);
     glUseProgram(0);
+
+    applyMove(0,0,0);
+    display();
 }
 
 /**Render object and display**/
@@ -226,7 +253,7 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
 
-            applyPerspectiveView();
+            //applyPerspectiveView();
         }
         if (proj_current_idx == 1) {
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
@@ -234,50 +261,18 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
             ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
 
-            applyParallelView();
+            //applyParallelView();
         }
     }
     ImGui::End();
-}
-
-/**Give the 2 corners of the cube that contains the obj**/
-std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices) {
-    // Inicializa los puntos con el primer vértice como punto de partida
-    Vec3 left_bottom_near = vertices[0];
-    Vec3 right_top_far = vertices[0];
-
-    for (const auto& vertexDefault : vertices) {
-        Vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);
-        // Encuentra el punto más a la izquierda, más abajo y más cercano
-        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
-        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
-        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
-
-        // Encuentra el punto más a la derecha, más arriba y más lejano
-        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
-        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
-        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
-    }
-    /*
-    std::cout << "Left Bottom Near Point: "
-              << "x: " << left_bottom_near.x()
-              << ", y: " << left_bottom_near.y()
-              << ", z: " << left_bottom_near.z() << std::endl;
-
-    std::cout << "Right Top Far Point: "
-              << "x: " << right_top_far.x()
-              << ", y: " << right_top_far.y()
-              << ", z: " << right_top_far.z() << std::endl;*/
-
-    return {left_bottom_near, right_top_far};
 }
 
 /**Update the view and display it**/
 void GeometryRender::applyParallelView(){
     /**/
     //top, farplane, obliqueScale, obliqueAngle
-    //aux[0].x()=left,aux[0].y(),bottom=,aux[0].z()=-near
-    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=-far
+    //aux[0].x()=left,aux[0].y()=bottom,aux[0].z()=near
+    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
     resetMatrix("P");
     array<Vec3,2> aux = getNormalizationPoint(vertices);
     std::vector<std::vector<float>> ST = {
@@ -308,17 +303,16 @@ void GeometryRender::applyParallelView(){
 void GeometryRender::applyPerspectiveView(){
     /**/
     //fov, farplane
-    //aux[0].x()=left,aux[0].y(),bottom=,aux[0].z()=-near
-    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=-far
+    //aux[0].x()=left,aux[0].y()=bottom,aux[0].z()=near
+    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
     resetMatrix("P");
     array<Vec3,2> aux = getNormalizationPoint(vertices);
     float top = (-aux[0].z())*std::tan(glm::radians(fov));
-    cout << endl << aspectRatio << endl;
     float right = top*aspectRatio;
 
     std::vector<std::vector<float>> Paux = {
-            {(-aux[0].z())/right, 0, 0, 0},
-            {0, (-aux[0].z())/top, 0, 0},
+            {(2*(-aux[0].z()))/(right+right), 0, (right-right)/(right+right), 0},
+            {0, (2*(-aux[0].z()))/(top + top), (top-top)/(top+top), 0},
             {0, 0, -(farplane+(-aux[0].z()))/(farplane+aux[0].z()), (-2*farplane*(-aux[0].z()))/(farplane+aux[0].z())},
             {0, 0, -1, 0}};
     modMat(Paux,"P");
@@ -333,6 +327,35 @@ void GeometryRender::applyPerspectiveView(){
     }
     std::cout << std::endl;std::cout << std::endl;
 }
+
+/**Direct move**/
+void GeometryRender::applyMove(float x, float y, float z){
+    /**/
+    //fov, farplane
+    //aux[0].x()=left,aux[0].y(),bottom=,aux[0].z()=near
+    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
+    resetMatrix("V");
+    array<Vec3,2> aux = getNormalizationPoint(vertices);
+
+    std::vector<std::vector<float>> Paux = {
+        {(float)windowWidth/2, 0, 0, aux[0].x() + (windowWidth)/(2)},
+        {0, (float)windowHeight/2, 0, aux[0].y() + (windowHeight)/(2)},
+        {0, 0, (aux[1].x()-aux[0].z())/2, aux[0].z() + (aux[1].z()-aux[0].z())/(2)},
+        {0, 0, 0, 1}};
+
+    modMat(Paux,"V");
+    display();
+
+    std::cout << std::endl;std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << V[i+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;
+}
+
 
 //--------------------------------------------------------
 
@@ -446,6 +469,38 @@ void GeometryRender::resetMatrix(std::string name) {
             }
         }
     }
+}
+
+/**Give the 2 corners of the cube that contains the obj**/
+std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices) {
+    // Inicializa los puntos con el primer vértice como punto de partida
+    Vec3 left_bottom_near = vertices[0];
+    Vec3 right_top_far = vertices[0];
+
+    for (const auto& vertexDefault : vertices) {
+        Vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);
+        // Encuentra el punto más a la izquierda, más abajo y más cercano
+        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
+        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
+        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
+
+        // Encuentra el punto más a la derecha, más arriba y más lejano
+        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
+        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
+        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
+    }
+    /*
+    std::cout << "Left Bottom Near Point: "
+              << "x: " << left_bottom_near.x()
+              << ", y: " << left_bottom_near.y()
+              << ", z: " << left_bottom_near.z() << std::endl;
+
+    std::cout << "Right Top Far Point: "
+              << "x: " << right_top_far.x()
+              << ", y: " << right_top_far.y()
+              << ", z: " << right_top_far.z() << std::endl;*/
+
+    return {left_bottom_near, right_top_far};
 }
 
 

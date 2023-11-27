@@ -45,7 +45,7 @@ protected:
 
     int windowWidth = 0;
     int windowHeight = 0;
-    int aspectRatio = 0;
+    float aspectRatio = 0;
 
 private:
     virtual void DrawGui()=0;

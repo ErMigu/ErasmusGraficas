@@ -29,7 +29,6 @@ class matrixRoutinesAndOBJ {
         return result;
     }
 
-
     /**Matrix4x4 X Matrix4x1**/
     static std::vector<Vec3> mulMatrixVectorR(const std::vector<std::vector<float>>& matrix, const std::vector<Vec3>& vectors) {
         std::vector<Vec3> result;
@@ -94,8 +93,8 @@ class matrixRoutinesAndOBJ {
         return M;
     }
 
-    /**Direct rotation around x-axis**/
-    static std::vector<std::vector<float>> rotatex(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
+    /**Direct rotation**/
+    static std::vector<std::vector<float>> rotate(const std::vector<Vec3>& vectors, float degreex, float degreey, float degreez, Mat4x4 matModel) {
         //getting the center of the object
         Vec3 center(0.0f, 0.0f, 0.0f);
         center= calculateCenter(vectors,matModel);
@@ -104,66 +103,37 @@ class matrixRoutinesAndOBJ {
         std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
 
         //rotate
-        float rad = degree * M_PI / 180.0f;
-        std::vector<std::vector<float>> M2{
-                {1, 0, 0, 0},
-                {0, std::cos(rad), -std::sin(rad), 0},
-                {0, std::sin(rad), std::cos(rad), 0},
-                {0, 0, 0, 1}
-        };
+        std::vector<std::vector<float>> M2(4, std::vector<float>(4, 0.0f)); // Inicializa M2 como una matriz 4x4 llena de ceros
+        if (degreex != 0.0f) { // rotatex
+            float rad = degreex * M_PI / 180.0f;
+            M2 = {
+                    {1, 0, 0, 0},
+                    {0, std::cos(rad), -std::sin(rad), 0},
+                    {0, std::sin(rad), std::cos(rad), 0},
+                    {0, 0, 0, 1}
+            };
+        } else if (degreey != 0.0f) { // rotatey
+            float rad = degreey * M_PI / 180.0f;
+            M2 = {
+                    {std::cos(rad), 0, std::sin(rad), 0},
+                    {0, 1, 0, 0},
+                    {-std::sin(rad), 0, std::cos(rad), 0},
+                    {0, 0, 0, 1}
+            };
+        } else if (degreez != 0.0f) { // rotatez
+            float rad = degreez * M_PI / 180.0f;
+            M2 = {
+                    {std::cos(rad), -std::sin(rad), 0, 0},
+                    {std::sin(rad), std::cos(rad), 0, 0},
+                    {0, 0, 1, 0},
+                    {0, 0, 0, 1}
+            };
+        }
 
         //translate to the original place
         std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
         std::vector<std::vector<float>> aux = mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
         return aux;
-    }
-
-    /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatey(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
-        //getting the center of the object
-        Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel);
-
-        //translate to 0,0,0
-        std::vector<Vec3> translatedVectors;
-        std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
-
-        //rotate
-        float rad = degree * M_PI / 180.0f;
-        std::vector<std::vector<float>> M2{
-                {std::cos(rad), 0, -std::sin(rad), 0},
-                {0, 1, 0, 0},
-                {std::sin(rad), 0, std::cos(rad), 0},
-                {0, 0, 0, 1}
-        };
-
-        //translate to the original place
-        std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
-        return mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
-    }
-
-    /**Direct rotation around y-axis**/
-    static std::vector<std::vector<float>> rotatez(const std::vector<Vec3>& vectors, float degree, Mat4x4 matModel) {
-        //getting the center of the object
-        Vec3 center(0.0f, 0.0f, 0.0f);
-        center= calculateCenter(vectors,matModel);
-
-        //translate to 0,0,0
-        std::vector<Vec3> translatedVectors;
-        std::vector<std::vector<float>> M1 = translate(-center.x(), -center.y(), -center.z());
-
-        //rotate
-        float rad = degree * M_PI / 180.0f;
-        std::vector<std::vector<float>> M2{
-                {std::cos(rad), -std::sin(rad), 0, 0},
-                {std::sin(rad), std::cos(rad), 0, 0},
-                {0, 0, 1, 0},
-                {0, 0, 0, 1}
-        };
-
-        //translate to the original place
-        std::vector<std::vector<float>> M3 = translate(center.x(), center.y(), center.z());
-        return mulMatrix4x4(M3,mulMatrix4x4(M2,M1));
     }
 
 //-----------------------------------------
