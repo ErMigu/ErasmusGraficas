@@ -7,6 +7,8 @@
 
 #include "geometryrender.h"
 #include "matrixRoutinesAndOBJ.h"
+#include <glm/glm.hpp>
+
 
 using namespace std;
 
@@ -224,7 +226,7 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
 
-
+            applyPerspectiveView();
         }
         if (proj_current_idx == 1) {
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
@@ -284,8 +286,8 @@ void GeometryRender::applyParallelView(){
             {0, 0, -2 / (farplane - aux[0].z()), -(farplane + aux[0].z()) / (farplane - aux[0].z())},
             {0, 0, 0, 1}};
     std::vector<std::vector<float>> H = {{
-            {1, 0, obliqueScale * std::cos((obliqueAngleRad*pi_f)/180), 0},
-            {0, 1, obliqueScale * std::sin((obliqueAngleRad*pi_f)/180), 0},
+            {1, 0, obliqueScale * std::cos(obliqueAngleRad), 0},
+            {0, 1, obliqueScale * std::sin(obliqueAngleRad), 0},
             {0, 0, 1, 0},
             {0, 0, 0, 1}}};
     std::vector<std::vector<float>> Paux =matrixRoutinesAndOBJ::mulMatrix4x4(ST,H);
@@ -310,12 +312,15 @@ void GeometryRender::applyPerspectiveView(){
     //aux[1].x()=right,aux[1].y()=top,aux[1].z()=-far
     resetMatrix("P");
     array<Vec3,2> aux = getNormalizationPoint(vertices);
+    float top = (-aux[0].z())*std::tan(glm::radians(fov));
+    cout << endl << aspectRatio << endl;
+    float right = top*aspectRatio;
 
     std::vector<std::vector<float>> Paux = {
-            {1, 0, 0, 0},
-            {0, 1, 0, 0},
-            {0, 0, 1, 0},
-            {0, 0, 0, 1}};
+            {(-aux[0].z())/right, 0, 0, 0},
+            {0, (-aux[0].z())/top, 0, 0},
+            {0, 0, -(farplane+(-aux[0].z()))/(farplane+aux[0].z()), (-2*farplane*(-aux[0].z()))/(farplane+aux[0].z())},
+            {0, 0, -1, 0}};
     modMat(Paux,"P");
     display();
 

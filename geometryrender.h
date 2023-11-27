@@ -60,7 +60,7 @@ private:
     float farplane = 500.0f;
     float top = 1.0f;
     float obliqueScale = 0.0f;
-    float obliqueAngleRad = 15.0f;
+    float obliqueAngleRad = pi_f/4.0f;
 
     //for the gui
     int proj_current_idx = 0;

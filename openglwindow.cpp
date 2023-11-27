@@ -27,6 +27,8 @@ OpenGLWindow::OpenGLWindow(string title, int width, int height)
     // Create OpenGL window
     windowWidth = width;
     windowHeight = height;
+    aspectRatio = windowWidth/windowHeight;
+
     glfwWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (glfwWindow == nullptr) {
         glfwTerminate();
