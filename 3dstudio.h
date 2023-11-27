@@ -16,6 +16,9 @@
 
 struct Vec3 {
     float values[3];
+    float *px=0;
+    float *py=0;
+    float *pz=0;
 
 public:
     //constructor
@@ -23,12 +26,18 @@ public:
         this->values[0] = x;
         this->values[1] = y;
         this->values[2] = z;
+        this->px=&values[0];
+        this->py=&values[1];
+        this->pz=&values[2];
     }
 
     Vec3() {
         this->values[0] = 0;
         this->values[1] = 0;
         this->values[2] = 0;
+        this->px=&values[0];
+        this->py=&values[1];
+        this->pz=&values[2];
     }
 
     //acccess
@@ -40,6 +49,36 @@ public:
     void x(float val) { values[0] = val; }
     void y(float val) { values[1] = val; }
     void z(float val) { values[2] = val; }
+
+    Vec3 operator-(const Vec3& other) const {
+        return {values[0] - other.values[0], values[1] - other.values[1], values[2] - other.values[2]};
+    }
+
+    void operator=(const Vec3& other) {
+        values[0] = other.values[0];
+        values[1] = other.values[1];
+        values[2] = other.values[2];
+    }
+
+    // Normalizar el vector
+    Vec3 normalize() const {
+        float len = std::sqrt(*px * *px + *py * *py + *pz * *pz);
+        return {*px / len, *py / len, *pz / len};
+    }
+
+    // Producto vectorial
+    static Vec3 cross(const Vec3& a, const Vec3& b) {
+        return {
+                a.values[1] * b.values[2] - a.values[2] * b.values[1],
+                a.values[2] * b.values[0] - a.values[0] * b.values[2],
+                a.values[0] * b.values[1] - a.values[1] * b.values[0]
+        };
+    }
+
+    // Producto escalar
+    static float dot(const Vec3& a, const Vec3& b) {
+        return a.values[0] * b.values[0] + a.values[1] * b.values[1] + a.values[2] * b.values[2];
+    }
 };
 
 // *************

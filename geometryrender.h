@@ -18,7 +18,7 @@ public:
     {}
 
     void initialize();
-    void loadgeometry();
+    void loadGeometry();
     virtual void display() override;
 
     std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices);
@@ -35,10 +35,12 @@ private:
     // Program
     GLuint program;
 
+
     // OpenGL buffers
     GLuint vao;
     GLuint vBuffer;
     GLuint iBuffer;
+
 
     // OpenGL attribute locations
     GLuint locVertices;
@@ -47,11 +49,12 @@ private:
     GLuint locView;
 
     void debugShader(void) const;
-    void loadGeometry(void);
+
 
     // Geometry data
     std::vector<Vec3> vertices;
     std::vector<unsigned int> indices;
+
 
     // GuiVar
     std::string objFileName;
@@ -63,10 +66,10 @@ private:
     float obliqueScale = 0.0f;
     float obliqueAngleRad = pi_f/4.0f;
 
-    float xMin=0;
-    float yMin=0;
-    float zMin=0;
-    float zMax=1;
+    Vec3 cameraPos;
+    Vec3 cameraTarget;
+    Vec3 upVector;
+
 
     //for the gui
     int proj_current_idx = 0;
@@ -77,9 +80,9 @@ private:
                        0.0f, 0.0f, 0.0f, 1.0f};
 
     Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f, 0.0f,
-                       0.0f, 0.0, 1.0, -2.0f,
-                       0.0f, 0.0f, 0.0f, 1.0f};
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0, 1.0, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f};
 
     Mat4x4 P = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,

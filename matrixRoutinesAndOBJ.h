@@ -250,8 +250,6 @@ class matrixRoutinesAndOBJ {
         float centerY = (minY + maxY) / 2.0f;
         float centerZ = (minZ + maxZ) / 2.0f;
 
-        std::cout << centerX << " " << centerY << " " << centerZ << std::endl;
-
         return Vec3(centerX, centerY, centerZ);
     }
 

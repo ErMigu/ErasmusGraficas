@@ -80,27 +80,27 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 break;
 
             case GLFW_KEY_E: //Camera positive y-axis
-                applyMove(0.0f, 10.0f, 0.0f);
+                ////applyMove(0.0f, 10.0f, 0.0f);
                 break;
 
             case GLFW_KEY_Q: //Camera negative y-axis
-                applyMove(0.0f, -10.0f, 0.0f);
+                ////applyMove(0.0f, -10.0f, 0.0f);
                 break;
 
             case GLFW_KEY_D: //Camera positive x-axis
-                applyMove(10.0f, 0.0f, 0.0f);
+                ////applyMove(10.0f, 0.0f, 0.0f);
                 break;
 
             case GLFW_KEY_A: //Camera negative x-axis
-                applyMove(-10.0f, 0.0f, 0.0f);
+                ////applyMove(-10.0f, 0.0f, 0.0f);
                 break;
 
             case GLFW_KEY_W: //Camera negative z-axis
-                applyMove(0.0f, 0.0f, -10.0f);
+                ////applyMove(0.0f, 0.0f, -10.0f);
                 break;
 
             case GLFW_KEY_S: //Camera positive z-axis
-                applyMove(0.0f, 0.0f, 10.0f);
+                ////applyMove(0.0f, 0.0f, 10.0f);
                 break;
         }
         if (proj_current_idx == 0) {
@@ -148,6 +148,10 @@ void GeometryRender::initialize()
     glBindVertexArray(0);
     glUseProgram(0);
 
+    cameraPos = Vec3(0.0f, 0.0f, 3.0f);
+    cameraTarget = Vec3(0.0f, 0.0f, 0.0f);
+    upVector = Vec3(0.0f, 1.0f, 0.0f);
+
     loadGeometry();
 }
 
@@ -156,7 +160,7 @@ void GeometryRender::loadGeometry(void)
 {
     resetMatrix("all");
     if(vertices.empty()){
-        matrixRoutinesAndOBJ::readOBJ("teddy.obj",vertices,indices);
+        matrixRoutinesAndOBJ::readOBJ("cube.obj",vertices,indices);
     }
 
     glUseProgram(program);
@@ -292,7 +296,7 @@ void GeometryRender::applyParallelView(){
     std::cout << std::endl;std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << P[i+j] << " ";
+            std::cout << P[i*4+j] << " ";
         }
         std::cout << std::endl;
     }
@@ -321,7 +325,7 @@ void GeometryRender::applyPerspectiveView(){
     std::cout << std::endl;std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << P[i+j] << " ";
+            std::cout << P[i*4+j] << " ";
         }
         std::cout << std::endl;
     }
@@ -329,27 +333,36 @@ void GeometryRender::applyPerspectiveView(){
 }
 
 /**Direct move**/
-void GeometryRender::applyMove(float x, float y, float z){
-    /**/
-    //fov, farplane
-    //aux[0].x()=left,aux[0].y(),bottom=,aux[0].z()=near
-    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
+void GeometryRender::applyMove(const float x, const float y, const float ź){
     resetMatrix("V");
-    array<Vec3,2> aux = getNormalizationPoint(vertices);
 
-    std::vector<std::vector<float>> Paux = {
-        {(float)windowWidth/2, 0, 0, aux[0].x() + (windowWidth)/(2)},
-        {0, (float)windowHeight/2, 0, aux[0].y() + (windowHeight)/(2)},
-        {0, 0, (aux[1].x()-aux[0].z())/2, aux[0].z() + (aux[1].z()-aux[0].z())/(2)},
-        {0, 0, 0, 1}};
+    Vec3 f = (cameraTarget - cameraPos).normalize();
+    Vec3 s = Vec3::cross(f, upVector).normalize();
+    Vec3 u = Vec3::cross(s, f);
 
-    modMat(Paux,"V");
+    std::vector<std::vector<float>> aux = {
+            {s.x(), u.x(), -f.x(), 0.0f},
+            {s.y(), u.y(), -f.y(), 0.0f},
+            {s.z(), u.z(), -f.z(), 0.0f},
+            {-Vec3::dot(s, cameraPos), -Vec3::dot(u, cameraPos), Vec3::dot(f, cameraPos), 1.0f}
+    };
+
+    std::cout << std::endl;std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << aux[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;
+
+    modMat(aux,"V");
     display();
 
     std::cout << std::endl;std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << V[i+j] << " ";
+            std::cout << V[i*4+j] << " ";
         }
         std::cout << std::endl;
     }
@@ -455,7 +468,6 @@ void GeometryRender::resetMatrix(std::string name) {
                         V[i] = 0.0f;
                     }
                 }
-                V[11]=-2.0f;
             }else{
                 if(name=="P"){
                     for (int i = 0; i < 16; ++i) {
