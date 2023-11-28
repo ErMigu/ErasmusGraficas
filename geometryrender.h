@@ -7,6 +7,7 @@
 #pragma once
 
 #include "openglwindow.h"
+#include <glm/glm.hpp>
 
 typedef float Mat4x4[16];
 
@@ -62,13 +63,14 @@ private:
 
     float fov = 60.0f;
     float farplane = 500.0f;
+    float nearplane = 1.0f;
     float top = 1.0f;
     float obliqueScale = 0.0f;
     float obliqueAngleRad = pi_f/4.0f;
 
-    Vec3 cameraPos;
-    Vec3 cameraTarget;
-    Vec3 upVector;
+    glm::vec3 cameraPos;
+    glm::vec3 cameraTarget;
+    glm::vec3 upVector;
 
 
     //for the gui

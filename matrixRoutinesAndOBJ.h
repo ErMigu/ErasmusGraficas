@@ -12,6 +12,9 @@
 #include <GLFW/glfw3.h>
 #include "3dstudio.h"
 #include "geometryrender.h"
+#include <glm/glm.hpp>
+#include "glm/ext.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 class matrixRoutinesAndOBJ {
     public:
@@ -177,6 +180,13 @@ class matrixRoutinesAndOBJ {
         }
         objFile.close();
         normalizeObject(vertices,true);
+        for(int i=0; i<vertices.size(); i++){
+            std::cout << vertices[i].x() << " " << vertices[i].y() << " " << vertices[i].z() << std::endl;
+        }std::cout << std::endl;
+
+        for(int i=0; i<indices.size(); i++){
+            std::cout << indices[i];
+        }
     }
 
     /**Make it fits in a 1x1x1 cube and center y the 0,0,0**/
@@ -260,6 +270,15 @@ class matrixRoutinesAndOBJ {
                     mat[8] * point.x() + mat[9] * point.y() + mat[10] * point.z() + mat[11]);
     }
 
+    static std::vector<std::vector<float>> glmToVec(const glm::mat4 &mat) {
+        std::vector<std::vector<float>> result(4, std::vector<float>(4));
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                result[i][j] = mat[i][j];
+            }
+        }
+        return result;
+    }
 };
 
 

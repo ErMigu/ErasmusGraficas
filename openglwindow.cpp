@@ -27,7 +27,7 @@ OpenGLWindow::OpenGLWindow(string title, int width, int height)
     // Create OpenGL window
     windowWidth = width;
     windowHeight = height;
-    aspectRatio = (float)windowWidth/windowHeight;
+    aspectRatio = (float) windowWidth/windowHeight;
     cout << endl << aspectRatio << endl << windowWidth << endl << windowHeight << endl << endl;
 
     glfwWindow = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
@@ -222,7 +222,7 @@ OpenGLWindow::initProgram(const string vShaderFile, const string fShaderFile) co
 void 
 OpenGLWindow::resizeCallback(GLFWwindow* window, int width, int height)
 {
-    //empty
+    glViewport(-1,-1,width,height);
 }
 
 // GLFW error callback function

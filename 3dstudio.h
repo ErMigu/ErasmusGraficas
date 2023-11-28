@@ -16,9 +16,6 @@
 
 struct Vec3 {
     float values[3];
-    float *px=0;
-    float *py=0;
-    float *pz=0;
 
 public:
     //constructor
@@ -26,18 +23,12 @@ public:
         this->values[0] = x;
         this->values[1] = y;
         this->values[2] = z;
-        this->px=&values[0];
-        this->py=&values[1];
-        this->pz=&values[2];
     }
 
     Vec3() {
         this->values[0] = 0;
         this->values[1] = 0;
         this->values[2] = 0;
-        this->px=&values[0];
-        this->py=&values[1];
-        this->pz=&values[2];
     }
 
     //acccess
@@ -62,8 +53,8 @@ public:
 
     // Normalizar el vector
     Vec3 normalize() const {
-        float len = std::sqrt(*px * *px + *py * *py + *pz * *pz);
-        return {*px / len, *py / len, *pz / len};
+        float len = std::sqrt(values[0] * values[0] + values[1] * values[1] + values[2] * values[2]);
+        return {values[0] / len, values[1] / len, values[2] / len};
     }
 
     // Producto vectorial

@@ -7,8 +7,6 @@
 
 #include "geometryrender.h"
 #include "matrixRoutinesAndOBJ.h"
-#include <glm/glm.hpp>
-
 
 using namespace std;
 
@@ -148,9 +146,18 @@ void GeometryRender::initialize()
     glBindVertexArray(0);
     glUseProgram(0);
 
-    cameraPos = Vec3(0.0f, 0.0f, 3.0f);
-    cameraTarget = Vec3(0.0f, 0.0f, 0.0f);
-    upVector = Vec3(0.0f, 1.0f, 0.0f);
+    cameraPos = glm::vec3(0.0f, 0.0f, 2.0f);
+    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+    modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
+
+    locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
+    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
+    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
+
 
     loadGeometry();
 }
@@ -170,13 +177,6 @@ void GeometryRender::loadGeometry(void)
     glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
     glEnableVertexAttribArray(locVertices);
 
-    locModel = glGetUniformLocation(program,"M");
-    locProjection = glGetUniformLocation(program,"P");
-    locView = glGetUniformLocation(program,"V");
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
-    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
-
     // Load object data to the array buffer and index array
     size_t vSize = vertices.size()*sizeof(Vec3);
     size_t iSize = indices.size()*sizeof(unsigned int);
@@ -186,7 +186,17 @@ void GeometryRender::loadGeometry(void)
     glBindVertexArray(0);
     glUseProgram(0);
 
-    applyMove(0,0,0);
+    std::cout << "V";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << V[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;
+    ///applyMove(0,0,0);
+
     display();
 }
 
@@ -257,7 +267,7 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Field of view",&fov, 20.0f, 160.0f, "%1.0f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
 
-            //applyPerspectiveView();
+            applyPerspectiveView();
         }
         if (proj_current_idx == 1) {
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
@@ -265,7 +275,7 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
             ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
 
-            //applyParallelView();
+            applyParallelView();
         }
     }
     ImGui::End();
@@ -273,27 +283,23 @@ void GeometryRender::DrawGui()
 
 /**Update the view and display it**/
 void GeometryRender::applyParallelView(){
-    /**/
-    //top, farplane, obliqueScale, obliqueAngle
-    //aux[0].x()=left,aux[0].y()=bottom,aux[0].z()=near
-    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
     resetMatrix("P");
-    array<Vec3,2> aux = getNormalizationPoint(vertices);
-    std::vector<std::vector<float>> ST = {
-            {2 / (aux[1].x() - aux[0].x()), 0, 0, -(aux[1].x() + aux[0].x()) / (aux[1].x() - aux[0].x())},
-            {0, 2 / (top - aux[0].y()), 0, -(top + aux[0].y()) / (top - aux[0].y())},
-            {0, 0, -2 / (farplane - aux[0].z()), -(farplane + aux[0].z()) / (farplane - aux[0].z())},
-            {0, 0, 0, 1}};
+    float right=top*aspectRatio;
+    float left=-right;
+    float bottom=-top;
+    glm::mat4 st=glm::ortho(left, right, bottom, top, farplane, nearplane);
+    std::vector<std::vector<float>> ST=matrixRoutinesAndOBJ::glmToVec(st);
     std::vector<std::vector<float>> H = {{
             {1, 0, obliqueScale * std::cos(obliqueAngleRad), 0},
             {0, 1, obliqueScale * std::sin(obliqueAngleRad), 0},
             {0, 0, 1, 0},
             {0, 0, 0, 1}}};
     std::vector<std::vector<float>> Paux =matrixRoutinesAndOBJ::mulMatrix4x4(ST,H);
+
     modMat(Paux,"P");
     display();
 
-    std::cout << std::endl;std::cout << std::endl;
+    std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
             std::cout << P[i*4+j] << " ";
@@ -305,27 +311,37 @@ void GeometryRender::applyParallelView(){
 
 /**Update the view and display it**/
 void GeometryRender::applyPerspectiveView(){
-    /**/
-    //fov, farplane
-    //aux[0].x()=left,aux[0].y()=bottom,aux[0].z()=near
-    //aux[1].x()=right,aux[1].y()=top,aux[1].z()=far
     resetMatrix("P");
-    array<Vec3,2> aux = getNormalizationPoint(vertices);
-    float top = (-aux[0].z())*std::tan(glm::radians(fov));
-    float right = top*aspectRatio;
 
-    std::vector<std::vector<float>> Paux = {
-            {(2*(-aux[0].z()))/(right+right), 0, (right-right)/(right+right), 0},
-            {0, (2*(-aux[0].z()))/(top + top), (top-top)/(top+top), 0},
-            {0, 0, -(farplane+(-aux[0].z()))/(farplane+aux[0].z()), (-2*farplane*(-aux[0].z()))/(farplane+aux[0].z())},
-            {0, 0, -1, 0}};
+    glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, farplane, nearplane);
+    std::vector<std::vector<float>> Paux=matrixRoutinesAndOBJ::glmToVec(mat);
+
     modMat(Paux,"P");
     display();
 
-    std::cout << std::endl;std::cout << std::endl;
+    std::cout << "MATMODEL";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << matModel[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "P";
+    std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
             std::cout << P[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "V";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << V[i*4+j] << " ";
         }
         std::cout << std::endl;
     }
@@ -334,39 +350,10 @@ void GeometryRender::applyPerspectiveView(){
 
 /**Direct move**/
 void GeometryRender::applyMove(const float x, const float y, const float ź){
+    /**/
     resetMatrix("V");
 
-    Vec3 f = (cameraTarget - cameraPos).normalize();
-    Vec3 s = Vec3::cross(f, upVector).normalize();
-    Vec3 u = Vec3::cross(s, f);
 
-    std::vector<std::vector<float>> aux = {
-            {s.x(), u.x(), -f.x(), 0.0f},
-            {s.y(), u.y(), -f.y(), 0.0f},
-            {s.z(), u.z(), -f.z(), 0.0f},
-            {-Vec3::dot(s, cameraPos), -Vec3::dot(u, cameraPos), Vec3::dot(f, cameraPos), 1.0f}
-    };
-
-    std::cout << std::endl;std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << aux[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
-
-    modMat(aux,"V");
-    display();
-
-    std::cout << std::endl;std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << V[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
 }
 
 
@@ -442,14 +429,13 @@ void GeometryRender::resetMatrix(std::string name) {
         for (int i = 0; i < 16; ++i) {
             if (i % 5 == 0) {
                 matModel[i] = 1.0f;
-                V[i] = 1.0f;
                 P[i] = 1.0f;
             } else {
                 matModel[i] = 0.0f;
-                V[i] = 0.0f;
                 P[i] = 0.0f;
             }
         }
+        //modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
     }else{
         if(name=="matModel"){
             for (int i = 0; i < 16; ++i) {
@@ -461,13 +447,7 @@ void GeometryRender::resetMatrix(std::string name) {
             }
         }else{
             if(name=="V") {
-                for (int i = 0; i < 16; ++i) {
-                    if (i % 5 == 0) {
-                        V[i] = 1.0f;
-                    } else {
-                        V[i] = 0.0f;
-                    }
-                }
+                //modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
             }else{
                 if(name=="P"){
                     for (int i = 0; i < 16; ++i) {
