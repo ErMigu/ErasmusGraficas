@@ -78,27 +78,27 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 break;
 
             case GLFW_KEY_E: //Camera positive y-axis
-                ////applyMove(0.0f, 10.0f, 0.0f);
+                modMat(matrixRoutinesAndOBJ::translate(0.0f,-0.1f,0.0f),"V");
                 break;
 
             case GLFW_KEY_Q: //Camera negative y-axis
-                ////applyMove(0.0f, -10.0f, 0.0f);
+                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.1f,0.0f),"V");
                 break;
 
             case GLFW_KEY_D: //Camera positive x-axis
-                ////applyMove(10.0f, 0.0f, 0.0f);
+                modMat(matrixRoutinesAndOBJ::translate(-0.1f,0.0f,0.0f),"V");
                 break;
 
             case GLFW_KEY_A: //Camera negative x-axis
-                ////applyMove(-10.0f, 0.0f, 0.0f);
+                modMat(matrixRoutinesAndOBJ::translate(0.1f,0.0f,0.0f),"V");
                 break;
 
             case GLFW_KEY_W: //Camera negative z-axis
-                ////applyMove(0.0f, 0.0f, -10.0f);
+                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.0f,-0.1f),"V");
                 break;
 
             case GLFW_KEY_S: //Camera positive z-axis
-                ////applyMove(0.0f, 0.0f, 10.0f);
+                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.0f,0.1f),"V");
                 break;
         }
         if (proj_current_idx == 0) {
@@ -146,18 +146,27 @@ void GeometryRender::initialize()
     glBindVertexArray(0);
     glUseProgram(0);
 
-    cameraPos = glm::vec3(0.0f, 0.0f, 2.0f);
+    cameraPos = glm::vec3(0.0f, 0.0f, 3.0);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    glm::mat4 aux = glm::lookAt(cameraPos,cameraTarget,upVector);
+
+    std::cout << "V";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << aux[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;
+
     modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
 
     locModel = glGetUniformLocation(program,"M");
     locProjection = glGetUniformLocation(program,"P");
     locView = glGetUniformLocation(program,"V");
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
-    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
-
 
     loadGeometry();
 }
@@ -186,17 +195,6 @@ void GeometryRender::loadGeometry(void)
     glBindVertexArray(0);
     glUseProgram(0);
 
-    std::cout << "V";
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << V[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
-    ///applyMove(0,0,0);
-
     display();
 }
 
@@ -204,10 +202,6 @@ void GeometryRender::loadGeometry(void)
 void GeometryRender::display()
 {
     glUseProgram(program);
-
-    locModel = glGetUniformLocation(program,"M");
-    locProjection = glGetUniformLocation(program,"P");
-    locView = glGetUniformLocation(program,"V");
 
     glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
     glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
@@ -222,6 +216,8 @@ void GeometryRender::display()
 
     // Not to be called in release...
     debugShader();
+
+    fullPrint();
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -298,62 +294,17 @@ void GeometryRender::applyParallelView(){
 
     modMat(Paux,"P");
     display();
-
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << P[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
 }
 
 /**Update the view and display it**/
 void GeometryRender::applyPerspectiveView(){
     resetMatrix("P");
-
-    glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, farplane, nearplane);
+    std::cout << fov << "  " << aspectRatio << "  " << nearplane << "  " << farplane<<std::endl;
+    glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, nearplane, farplane);
     std::vector<std::vector<float>> Paux=matrixRoutinesAndOBJ::glmToVec(mat);
 
     modMat(Paux,"P");
     display();
-
-    std::cout << "MATMODEL";
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << matModel[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "P";
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << P[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "V";
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << V[i*4+j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
-}
-
-/**Direct move**/
-void GeometryRender::applyMove(const float x, const float y, const float ź){
-    /**/
-    resetMatrix("V");
-
-
 }
 
 
@@ -464,7 +415,7 @@ void GeometryRender::resetMatrix(std::string name) {
 }
 
 /**Give the 2 corners of the cube that contains the obj**/
-std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices) {
+std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices){
     // Inicializa los puntos con el primer vértice como punto de partida
     Vec3 left_bottom_near = vertices[0];
     Vec3 right_top_far = vertices[0];
@@ -481,19 +432,44 @@ std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3
         if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
         if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
     }
-    /*
-    std::cout << "Left Bottom Near Point: "
-              << "x: " << left_bottom_near.x()
-              << ", y: " << left_bottom_near.y()
-              << ", z: " << left_bottom_near.z() << std::endl;
-
-    std::cout << "Right Top Far Point: "
-              << "x: " << right_top_far.x()
-              << ", y: " << right_top_far.y()
-              << ", z: " << right_top_far.z() << std::endl;*/
-
     return {left_bottom_near, right_top_far};
 }
 
+void GeometryRender::fullPrint(){
+    std::cout << "MATMODEL";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << matModel[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "P";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << P[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "V";
+    std::cout << std::endl;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            std::cout << V[i*4+j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;
+
+    /*
+    std::cout << std::endl;
+    for (int i=0; i<vertices.size(); i++) {
+        std::cout << vertices[i].x() << " " << vertices[i].y() << " " << vertices[i].z() << std::endl;
+    }
+    std::cout << std::endl;std::cout << std::endl;*/
+}
 
 //--------------------------------------------------------

@@ -223,11 +223,11 @@ class matrixRoutinesAndOBJ {
             Vec3 center = calculateCenter(vertices, aux);
             for(unsigned int i=0; i<vertices.size(); i++){
                 vertices[i].x(vertices[i].x()*scale);
-                vertices[i].x(vertices[i].x()-center.x()/2);
+                vertices[i].x(vertices[i].x()-center.x());
                 vertices[i].y(vertices[i].y()*scale);
-                vertices[i].y(vertices[i].y()-center.y()/2);
+                vertices[i].y(vertices[i].y()-center.y());
                 vertices[i].z(vertices[i].z()*scale);
-                vertices[i].z(vertices[i].z()-center.z()/2);
+                vertices[i].z(vertices[i].z()-center.z());
             }
             calculateCenter(vertices, aux);
         }

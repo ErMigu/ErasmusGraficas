@@ -29,6 +29,7 @@ public:
     void applyParallelView();
     void applyPerspectiveView();
     void applyMove(float x, float y, float z);
+    void fullPrint();
 
     void DrawGui();
 
@@ -62,8 +63,8 @@ private:
     std::string objFilePath;
 
     float fov = 60.0f;
-    float farplane = 500.0f;
-    float nearplane = 1.0f;
+    float farplane = 100.0f;
+    float nearplane = -10;
     float top = 1.0f;
     float obliqueScale = 0.0f;
     float obliqueAngleRad = pi_f/4.0f;
@@ -81,14 +82,13 @@ private:
                        0.0f, 0.0, 1.0, 0.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};
 
-    Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0, 1.0, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f};
-
     Mat4x4 P = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
                        0.0f, 0.0, 1.0, 0.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};
 
+    Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0, 1.0, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f};
 };
