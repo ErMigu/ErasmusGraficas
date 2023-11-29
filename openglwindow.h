@@ -26,7 +26,7 @@ public:
     virtual void errorCallback(int error, const char* desc);
     virtual void resizeCallback(GLFWwindow* window, int width, int height);
     virtual void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) = 0; //I will code it in geometryrender
-                                                                                                //to have access to its methods
+    virtual void mouseCallback(GLFWwindow* window, double xpos, double ypos) = 0;                                                                                   //to have access to its methods
 
     void start();
     virtual void initialize() = 0;

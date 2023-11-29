@@ -80,8 +80,6 @@ OpenGLWindow::OpenGLWindow(string title, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-
-
 OpenGLWindow::~OpenGLWindow()
 {
     ImGui_ImplOpenGL3_Shutdown();
@@ -92,8 +90,7 @@ OpenGLWindow::~OpenGLWindow()
 }
 
 // OpenGL error handler
-bool 
-OpenGLWindow::checkOpenGLError() const
+bool OpenGLWindow::checkOpenGLError() const
 {
     bool foundError = false;
     GLenum glError = glGetError();
@@ -106,27 +103,23 @@ OpenGLWindow::checkOpenGLError() const
     return foundError;
 }
 
-int 
-OpenGLWindow::width() const
+int OpenGLWindow::width() const
 {
     return windowWidth;
 }
 
-int 
-OpenGLWindow::height() const
+int OpenGLWindow::height() const
 {
     return windowHeight;
 }
 
-GLFWwindow* 
-OpenGLWindow::window() const
+GLFWwindow* OpenGLWindow::window() const
 {
     return glfwWindow;
 }
 
 // Read shader source files
-string
-OpenGLWindow::readShaderSource(const string shaderFile) const
+string OpenGLWindow::readShaderSource(const string shaderFile) const
 {
     string shaderSource;
     string line;
@@ -142,7 +135,6 @@ OpenGLWindow::readShaderSource(const string shaderFile) const
     fs.close();
     return shaderSource;
 }
-
 
 // Initialize OpenGL shader program
 GLuint 
@@ -217,7 +209,6 @@ OpenGLWindow::initProgram(const string vShaderFile, const string fShaderFile) co
     return program;
 }
 
-
 // The window resize callback function
 void 
 OpenGLWindow::resizeCallback(GLFWwindow* window, int width, int height)
@@ -233,8 +224,7 @@ OpenGLWindow::errorCallback(int error, const char* description)
 }
 
 // Start the GLFW loop
-void 
-OpenGLWindow::start()
+void OpenGLWindow::start()
 {
     //bool show_demo_window = false;
     // Loop until the user closes the window
@@ -261,7 +251,7 @@ OpenGLWindow::start()
     }
 }
 
-// Render the scene 
+// Render the scene
 void OpenGLWindow::displayNow()
 {
     if (glfwGetCurrentContext() == nullptr)

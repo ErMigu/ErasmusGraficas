@@ -9,8 +9,6 @@
 #include "openglwindow.h"
 #include <glm/glm.hpp>
 
-typedef float Mat4x4[16];
-
 class GeometryRender : public OpenGLWindow
 {
 public:
@@ -22,8 +20,7 @@ public:
     void loadGeometry();
     virtual void display() override;
 
-    std::array<Vec3, 2> getNormalizationPoint(const std::vector<Vec3>& vertices);
-    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    std::array<glm::vec3, 2> getNormalizationPoint(const std::vector<glm::vec3>& vertices);
     void modMat(const std::vector<std::vector<float>> &m, std::string nameMat);
     void resetMatrix(std::string name);
     void applyParallelView();
@@ -32,6 +29,8 @@ public:
     void fullPrint();
 
     void DrawGui();
+    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 
 private:
     // Program
@@ -54,7 +53,7 @@ private:
 
 
     // Geometry data
-    std::vector<Vec3> vertices;
+    std::vector<glm::vec3> vertices;
     std::vector<unsigned int> indices;
 
 
@@ -76,18 +75,20 @@ private:
 
     //for the gui
     int proj_current_idx = 0;
+    double xMouse=null;
+    double yMouse=null;
 
-    Mat4x4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
+    glm::mat4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
                        0.0f, 0.0, 1.0, 0.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};
 
-    Mat4x4 P = {1.0f, 0.0f, 0.0f, 0.0f,
+    glm::mat4 P = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
                        0.0f, 0.0, 1.0, 0.0f,
                        0.0f, 0.0f, 0.0f, 1.0f};
 
-    Mat4x4 V = {1.0f, 0.0f, 0.0f, 0.0f,
+    glm::mat4 V = {1.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f,
                 0.0f, 0.0, 1.0, 0.0f,
                 0.0f, 0.0f, 0.0f, 1.0f};

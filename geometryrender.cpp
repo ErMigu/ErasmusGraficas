@@ -10,6 +10,7 @@
 
 using namespace std;
 
+
 /**Check if any error has been reported from the shader**/
 void GeometryRender::debugShader(void) const
 {
@@ -39,77 +40,90 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotate(vertices, 0.0f,10.0f,0.0f, matModel),"matModel");
+                matModel=matrixRoutinesAndOBJ::rotate(vertices, 0.0f,-10.0f,0.0f, matModel)*matModel;
                 break;
 
             case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotate(vertices, 0.0f, -10.0f, 0.0f, matModel),"matModel");
+                matModel=matrixRoutinesAndOBJ::rotate(vertices, 0.0f, 10.0f, 0.0f, matModel)*matModel;
                 break;
 
             case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotate(vertices, 10.0f, 0.0f, 0.0f, matModel),"matModel");
+                matModel=matrixRoutinesAndOBJ::rotate(vertices, -10.0f, 0.0f, 0.0f, matModel)*matModel;
                 break;
 
             case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::rotate(vertices, -10.0f, 0.0f, 0.0f, matModel),"matModel");
+                matModel=matrixRoutinesAndOBJ::rotate(vertices, 10.0f, 0.0f, 0.0f, matModel)*matModel;
                 break;
 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f),"matModel");
+                matModel=matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_L: //translate case
                 std::cout << "L key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f),"matModel");
+                matModel=matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_I: //translate case
                 std::cout << "I key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f),"matModel");
+                matModel=matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_K: //translate case
                 std::cout << "K key pressed." << std::endl;
-                modMat(matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f),"matModel");
+                matModel=matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_E: //Camera positive y-axis
-                modMat(matrixRoutinesAndOBJ::translate(0.0f,-0.1f,0.0f),"V");
+                cameraPos=glm::vec3(cameraPos.x,cameraPos.y+0.1f,cameraPos.z);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
 
             case GLFW_KEY_Q: //Camera negative y-axis
-                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.1f,0.0f),"V");
+                cameraPos=glm::vec3(cameraPos.x,cameraPos.y-0.1f,cameraPos.z);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
 
             case GLFW_KEY_D: //Camera positive x-axis
-                modMat(matrixRoutinesAndOBJ::translate(-0.1f,0.0f,0.0f),"V");
+                cameraPos=glm::vec3(cameraPos.x+0.1f,cameraPos.y,cameraPos.z);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
 
             case GLFW_KEY_A: //Camera negative x-axis
-                modMat(matrixRoutinesAndOBJ::translate(0.1f,0.0f,0.0f),"V");
+                cameraPos=glm::vec3(cameraPos.x-0.1f,cameraPos.y,cameraPos.z);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
 
             case GLFW_KEY_W: //Camera negative z-axis
-                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.0f,-0.1f),"V");
+                cameraPos=glm::vec3(cameraPos.x,cameraPos.y,cameraPos.z+0.1f);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
 
             case GLFW_KEY_S: //Camera positive z-axis
-                modMat(matrixRoutinesAndOBJ::translate(0.0f,0.0f,0.1f),"V");
+                cameraPos=glm::vec3(cameraPos.x,cameraPos.y,cameraPos.z-0.1f);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
                 break;
-        }
-        if (proj_current_idx == 0) {
-            //applyPerspectiveView();
-        }
-        if (proj_current_idx == 1) {
-            //applyParallelView();
         }
         display();
     }
 }
+
+void GeometryRender::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) {
+        if()
+
+
+        display();
+    }else{
+        xMouse=null;
+        yMouse=null;
+    }
+}
+
 
 
 //--------------------------------------------------------
@@ -123,8 +137,25 @@ void GeometryRender::initialize()
 
     // Create and initialize a program object with shaders
     program = initProgram("vshader.glsl", "fshader.glsl");
+
     // Installs the program object as part of current rendering state
     glUseProgram(program);
+
+    //Get matrix locations for each matrix
+    locModel = glGetUniformLocation(program,"M");
+    locProjection = glGetUniformLocation(program,"P");
+    locView = glGetUniformLocation(program,"V");
+
+    //Initializes matrixes
+    cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+    V=glm::lookAt(cameraPos,cameraTarget,upVector);
+
+    //Load the matrixes into the shader
+    glUniformMatrix4fv(locModel, 1, GL_TRUE,glm::value_ptr(matModel));
+    glUniformMatrix4fv(locView,1,GL_TRUE,glm::value_ptr(V));
+    glUniformMatrix4fv(locProjection,1,GL_TRUE,glm::value_ptr(P));
 
     // Creat a vertex array object
     glGenVertexArrays(1, &vao);
@@ -146,27 +177,15 @@ void GeometryRender::initialize()
     glBindVertexArray(0);
     glUseProgram(0);
 
-    cameraPos = glm::vec3(0.0f, 0.0f, 3.0);
-    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    glm::mat4 aux = glm::lookAt(cameraPos,cameraTarget,upVector);
-
     std::cout << "V";
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << aux[i][j] << " ";
+            std::cout << V[i][j] << " ";
         }
         std::cout << std::endl;
     }
     std::cout << std::endl;std::cout << std::endl;
-
-    modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
-
-    locModel = glGetUniformLocation(program,"M");
-    locProjection = glGetUniformLocation(program,"P");
-    locView = glGetUniformLocation(program,"V");
 
     loadGeometry();
 }
@@ -187,7 +206,7 @@ void GeometryRender::loadGeometry(void)
     glEnableVertexAttribArray(locVertices);
 
     // Load object data to the array buffer and index array
-    size_t vSize = vertices.size()*sizeof(Vec3);
+    size_t vSize = vertices.size()*sizeof(glm::vec3);
     size_t iSize = indices.size()*sizeof(unsigned int);
     glBufferData( GL_ARRAY_BUFFER, vSize, vertices.data(), GL_STATIC_DRAW );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, iSize, indices.data(), GL_STATIC_DRAW );
@@ -202,13 +221,13 @@ void GeometryRender::loadGeometry(void)
 void GeometryRender::display()
 {
     glUseProgram(program);
-
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, matModel);
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, P);
-    glUniformMatrix4fv(locView, 1, GL_TRUE, V);
-
     glBindVertexArray(vao);
 
+    glUniformMatrix4fv(locModel, 1, GL_TRUE, glm::value_ptr(matModel));
+    glUniformMatrix4fv(locProjection, 1, GL_TRUE, glm::value_ptr(P));
+    glUniformMatrix4fv(locView, 1, GL_TRUE, glm::value_ptr(V));
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Call OpenGL to draw the triangle
@@ -280,19 +299,19 @@ void GeometryRender::DrawGui()
 /**Update the view and display it**/
 void GeometryRender::applyParallelView(){
     resetMatrix("P");
-    float right=top*aspectRatio;
+    float aspectRatioo = (float) width()/height();
+    float right=top*aspectRatioo;
     float left=-right;
     float bottom=-top;
-    glm::mat4 st=glm::ortho(left, right, bottom, top, farplane, nearplane);
-    std::vector<std::vector<float>> ST=matrixRoutinesAndOBJ::glmToVec(st);
-    std::vector<std::vector<float>> H = {{
+
+    glm::mat4 st=glm::ortho(left, right, bottom, top, nearplane, farplane);
+    glm::mat4 H = {
             {1, 0, obliqueScale * std::cos(obliqueAngleRad), 0},
             {0, 1, obliqueScale * std::sin(obliqueAngleRad), 0},
             {0, 0, 1, 0},
-            {0, 0, 0, 1}}};
-    std::vector<std::vector<float>> Paux =matrixRoutinesAndOBJ::mulMatrix4x4(ST,H);
+            {0, 0, 0, 1}};
 
-    modMat(Paux,"P");
+    P=st*H*P;
     display();
 }
 
@@ -301,9 +320,8 @@ void GeometryRender::applyPerspectiveView(){
     resetMatrix("P");
     std::cout << fov << "  " << aspectRatio << "  " << nearplane << "  " << farplane<<std::endl;
     glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, nearplane, farplane);
-    std::vector<std::vector<float>> Paux=matrixRoutinesAndOBJ::glmToVec(mat);
 
-    modMat(Paux,"P");
+    P=mat*P;
     display();
 }
 
@@ -311,102 +329,43 @@ void GeometryRender::applyPerspectiveView(){
 //--------------------------------------------------------
 
 
-/**Used to apply a modification to the filter matrix**/
-void GeometryRender::modMat(const std::vector<std::vector<float>>& m, std::string nameMat) {
-    if(nameMat=="matModel"){
-        //mat4 -> array<array<float>>
-        std::vector<std::vector<float>> matAux{
-                {matModel[0], matModel[1], matModel[2], matModel[3]},
-                {matModel[4], matModel[5], matModel[6], matModel[7]},
-                {matModel[8], matModel[9], matModel[10], matModel[11]},
-                {matModel[12], matModel[13], matModel[14], matModel[15]}
-        };
-
-        //multiply
-        std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matAux);
-
-        //array<array<float>> -> mat4
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                matModel[i * 4 + j] = result[i][j];
-            }
-        }
-    }else{
-        if(nameMat=="V"){
-            //mat4 -> array<array<float>>
-            std::vector<std::vector<float>> matAux{
-                    {V[0], V[1], V[2], V[3]},
-                    {V[4], V[5], V[6], V[7]},
-                    {V[8], V[9], V[10], V[11]},
-                    {V[12], V[13], V[14], V[15]}
-            };
-
-            //multiply
-            std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matAux);
-
-            //array<array<float>> -> mat4
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    V[i * 4 + j] = result[i][j];
-                }
-            }
-        }else{
-            if(nameMat=="P"){
-                //mat4 -> array<array<float>>
-                std::vector<std::vector<float>> matAux{
-                        {P[0], P[1], P[2], P[3]},
-                        {P[4], P[5], P[6], P[7]},
-                        {P[8], P[9], P[10], P[11]},
-                        {P[12], P[13], P[14], P[15]}
-                };
-
-                //multiply
-                std::vector<std::vector<float>> result = matrixRoutinesAndOBJ::mulMatrix4x4(m, matAux);
-
-                //array<array<float>> -> mat4
-                for (int i = 0; i < 4; i++) {
-                    for (int j = 0; j < 4; j++) {
-                        P[i * 4 + j] = result[i][j];
-                    }
-                }
-            }
-        }
-    }
-}
-
 /**Reset the filter matrix completely**/
 void GeometryRender::resetMatrix(std::string name) {
     if(name=="all"){
-        for (int i = 0; i < 16; ++i) {
-            if (i % 5 == 0) {
-                matModel[i] = 1.0f;
-                P[i] = 1.0f;
-            } else {
-                matModel[i] = 0.0f;
-                P[i] = 0.0f;
-            }
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j)
+                if (i==j) {
+                    matModel[i][j] = 1.0f;
+                    P[i][j] = 1.0f;
+                } else {
+                    matModel[i][j] = 0.0f;
+                    P[i][j] = 0.0f;
+                }
         }
-        //modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
+        cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+        V=glm::lookAt(cameraPos,cameraTarget,upVector);
     }else{
         if(name=="matModel"){
-            for (int i = 0; i < 16; ++i) {
-                if (i % 5 == 0) {
-                    matModel[i] = 1.0f;
-                } else {
-                    matModel[i] = 0.0f;
-                }
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j)
+                    if (i==j) {
+                        matModel[i][j] = 1.0f;
+                    } else {
+                        matModel[i][j] = 0.0f;
+                    }
             }
         }else{
             if(name=="V") {
                 //modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
             }else{
                 if(name=="P"){
-                    for (int i = 0; i < 16; ++i) {
-                        if (i % 5 == 0) {
-                            P[i] = 1.0f;
-                        } else {
-                            P[i] = 0.0f;
-                        }
+                    for (int i = 0; i < 4; ++i) {
+                        for (int j = 0; j < 4; ++j)
+                            if (i==j) {
+                                P[i][j] = 1.0f;
+                            } else {
+                                P[i][j] = 0.0f;
+                            }
                     }
                 }
             }
@@ -415,22 +374,22 @@ void GeometryRender::resetMatrix(std::string name) {
 }
 
 /**Give the 2 corners of the cube that contains the obj**/
-std::array<Vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<Vec3>& vertices){
+std::array<glm::vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<glm::vec3>& vertices){
     // Inicializa los puntos con el primer vértice como punto de partida
-    Vec3 left_bottom_near = vertices[0];
-    Vec3 right_top_far = vertices[0];
+    glm::vec3 left_bottom_near = vertices[0];
+    glm::vec3 right_top_far = vertices[0];
 
     for (const auto& vertexDefault : vertices) {
-        Vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);
+        glm::vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);
         // Encuentra el punto más a la izquierda, más abajo y más cercano
-        if (vertex.x() < left_bottom_near.x()) left_bottom_near.x(vertex.x());
-        if (vertex.y() < left_bottom_near.y()) left_bottom_near.y(vertex.y());
-        if (vertex.z() < left_bottom_near.z()) left_bottom_near.z(vertex.z());
+        if (vertex.x < left_bottom_near.x) left_bottom_near.x=vertex.x;
+        if (vertex.y < left_bottom_near.y) left_bottom_near.y=vertex.y;
+        if (vertex.z < left_bottom_near.z) left_bottom_near.z=vertex.z;
 
         // Encuentra el punto más a la derecha, más arriba y más lejano
-        if (vertex.x() > right_top_far.x()) right_top_far.x(vertex.x());
-        if (vertex.y() > right_top_far.y()) right_top_far.y(vertex.y());
-        if (vertex.z() > right_top_far.z()) right_top_far.z(vertex.z());
+        if (vertex.x > right_top_far.x) right_top_far.x=vertex.x;
+        if (vertex.y > right_top_far.y) right_top_far.y=vertex.y;
+        if (vertex.z > right_top_far.z) right_top_far.z=vertex.z;
     }
     return {left_bottom_near, right_top_far};
 }
@@ -440,7 +399,7 @@ void GeometryRender::fullPrint(){
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << matModel[i*4+j] << " ";
+            std::cout << matModel[i][j] << " ";
         }
         std::cout << std::endl;
     }
@@ -449,7 +408,7 @@ void GeometryRender::fullPrint(){
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << P[i*4+j] << " ";
+            std::cout << P[i][j] << " ";
         }
         std::cout << std::endl;
     }
@@ -458,7 +417,7 @@ void GeometryRender::fullPrint(){
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
-            std::cout << V[i*4+j] << " ";
+            std::cout << V[i][j] << " ";
         }
         std::cout << std::endl;
     }
@@ -467,9 +426,10 @@ void GeometryRender::fullPrint(){
     /*
     std::cout << std::endl;
     for (int i=0; i<vertices.size(); i++) {
-        std::cout << vertices[i].x() << " " << vertices[i].y() << " " << vertices[i].z() << std::endl;
+        std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
     }
     std::cout << std::endl;std::cout << std::endl;*/
 }
+
 
 //--------------------------------------------------------
