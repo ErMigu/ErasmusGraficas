@@ -31,6 +31,13 @@ class glfwCallbackManager
             app->keyCallback(window, key, scancode, action, mods);
     }
 
+    //callback as key detection
+    static void mouseCallback(GLFWwindow* window, double xpos, double ypos)
+    {
+        if(app)
+            app->mouseCallback(window, xpos, ypos);
+    }
+
 
 public:
     static void initCallbacks(OpenGLWindow* glfwapp)
@@ -39,6 +46,7 @@ public:
         glfwSetErrorCallback(errorCallback);
         glfwSetFramebufferSizeCallback(app->window() , resizeCallback);
         glfwSetKeyCallback(app->window(), keyCallback);
+        glfwSetCursorPosCallback(app->window(), mouseCallback);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 };

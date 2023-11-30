@@ -112,15 +112,41 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
     }
 }
 
+/**Mouse detection callback**/
 void GeometryRender::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) {
-        if()
-
-
-        display();
-    }else{
-        xMouse=null;
-        yMouse=null;
+        if(mouseActive == true) {
+            double deltaX = xpos - xMouse; double deltaY = ypos - yMouse;
+            if(deltaX > 0) { //caso derecha
+                cameraPos=glm::vec3(cameraPos.x+0.1f,cameraPos.y,cameraPos.z);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+            } else {
+                if(deltaX < 0) { //caso izq
+                    cameraPos=glm::vec3(cameraPos.x-0.1f,cameraPos.y,cameraPos.z);
+                    V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                } else {
+                    if(deltaY > 0) { //caso abajo
+                        cameraPos=glm::vec3(cameraPos.x,cameraPos.y-0.1f,cameraPos.z);
+                        V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                    } else {
+                        if (deltaY < 0) { //caso arriba
+                            cameraPos=glm::vec3(cameraPos.x,cameraPos.y+0.1f,cameraPos.z);
+                            V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                        }
+                    }
+                }
+            }
+            xMouse = xpos;
+            yMouse = ypos;
+            display();
+        }else{
+            mouseActive=true;
+            xMouse = xpos;
+            yMouse = ypos;
+        }
+    }else{ //si dejo de pulsar, pongo el mouse en nada
+        mouseActive=false;
     }
 }
 
@@ -151,6 +177,7 @@ void GeometryRender::initialize()
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
     V=glm::lookAt(cameraPos,cameraTarget,upVector);
+
 
     //Load the matrixes into the shader
     glUniformMatrix4fv(locModel, 1, GL_TRUE,glm::value_ptr(matModel));
@@ -202,11 +229,11 @@ void GeometryRender::loadGeometry(void)
     glBindVertexArray(vao);
 
     // Set the pointers of locVertices to the right places
-    glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+    glVertexAttribPointer(locVertices, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
     glEnableVertexAttribArray(locVertices);
 
     // Load object data to the array buffer and index array
-    size_t vSize = vertices.size()*sizeof(glm::vec3);
+    size_t vSize = vertices.size()*sizeof(glm::vec4);
     size_t iSize = indices.size()*sizeof(unsigned int);
     glBufferData( GL_ARRAY_BUFFER, vSize, vertices.data(), GL_STATIC_DRAW );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, iSize, indices.data(), GL_STATIC_DRAW );
@@ -311,7 +338,7 @@ void GeometryRender::applyParallelView(){
             {0, 0, 1, 0},
             {0, 0, 0, 1}};
 
-    P=st*H*P;
+    P=st*H;
     display();
 }
 
@@ -321,7 +348,7 @@ void GeometryRender::applyPerspectiveView(){
     std::cout << fov << "  " << aspectRatio << "  " << nearplane << "  " << farplane<<std::endl;
     glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, nearplane, farplane);
 
-    P=mat*P;
+    P=mat;
     display();
 }
 
@@ -356,7 +383,8 @@ void GeometryRender::resetMatrix(std::string name) {
             }
         }else{
             if(name=="V") {
-                //modMat(matrixRoutinesAndOBJ::glmToVec(glm::lookAt(cameraPos,cameraTarget,upVector)),"V");
+                cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+                V=glm::lookAt(cameraPos,cameraTarget,upVector);
             }else{
                 if(name=="P"){
                     for (int i = 0; i < 4; ++i) {
@@ -374,10 +402,10 @@ void GeometryRender::resetMatrix(std::string name) {
 }
 
 /**Give the 2 corners of the cube that contains the obj**/
-std::array<glm::vec3, 2> GeometryRender::getNormalizationPoint(const std::vector<glm::vec3>& vertices){
+std::array<glm::vec4, 2> GeometryRender::getNormalizationPoint(const std::vector<glm::vec4>& vertices){
     // Inicializa los puntos con el primer vértice como punto de partida
-    glm::vec3 left_bottom_near = vertices[0];
-    glm::vec3 right_top_far = vertices[0];
+    glm::vec4 left_bottom_near = vertices[0];
+    glm::vec4 right_top_far = vertices[0];
 
     for (const auto& vertexDefault : vertices) {
         glm::vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);

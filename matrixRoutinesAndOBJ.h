@@ -44,9 +44,9 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Direct rotation**/
-    static glm::mat4 rotate(const std::vector<glm::vec3>& vectors, float degreex, float degreey, float degreez, glm::mat4 matModel) {
+    static glm::mat4 rotate(const std::vector<glm::vec4>& vectors, float degreex, float degreey, float degreez, glm::mat4 matModel) {
         //getting the center of the object
-        glm::vec3 center(0.0f, 0.0f, 0.0f);
+        glm::vec4 center(0.0f, 0.0f, 0.0f,1.0f);
         center = calculateCenter(vectors,matModel);
 
         //translate to 0,0,0
@@ -90,7 +90,7 @@ class matrixRoutinesAndOBJ {
 
 
     /**Reads the OBJfile**/
-    static void readOBJ(const std::string& name, std::vector<glm::vec3>& vertices, std::vector<unsigned int>& indices) {
+    static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<unsigned int>& indices) {
         vertices.clear();
         indices.clear();
 
@@ -104,9 +104,9 @@ class matrixRoutinesAndOBJ {
             std::string prefix;
             lineStream >> prefix;
             if (prefix == "v") { //read if the first is a v
-                glm::vec3 vertex;
+                glm::vec4 vertex;
                 lineStream >> vertex.x >> vertex.y >> vertex.z; //save vertex
-                vertices.push_back(vertex);
+                vertices.push_back(glm::vec4(vertex.x,vertex.y,vertex.z,1.0f));
             } else if (prefix == "f") { //read if the first is an 'f'
                 char nextChar;
                 for (int i = 0; i < 3; ++i) {
@@ -138,10 +138,10 @@ class matrixRoutinesAndOBJ {
     }
 
     /**Make it fits in a 1x1x1 cube and center y the 0,0,0**/
-    static glm::mat4 normalizeObject(std::vector<glm::vec3>& vertices, bool changeVertices) {
+    static glm::mat4 normalizeObject(std::vector<glm::vec4>& vertices, bool changeVertices) {
         //max, min values for x,y,z
-        glm::vec3 minVertex = vertices[0];
-        glm::vec3 maxVertex = vertices[0];
+        glm::vec4 minVertex = vertices[0];
+        glm::vec4 maxVertex = vertices[0];
 
         for (const auto& vertex : vertices) {
             if (vertex.x < minVertex.x) minVertex.x=vertex.x;
@@ -174,7 +174,7 @@ class matrixRoutinesAndOBJ {
     }
 
     /**It returns the center point of the object**/
-    static glm::vec3 calculateCenter(const std::vector<glm::vec3>& vectors, glm::mat4 matModel) {
+    static glm::vec4 calculateCenter(const std::vector<glm::vec4>& vectors, glm::mat4 matModel) {
         //var
         float minX = std::numeric_limits<float>::max();
         float minY = std::numeric_limits<float>::max();
@@ -184,8 +184,8 @@ class matrixRoutinesAndOBJ {
         float maxZ = -std::numeric_limits<float>::max();
 
         //apply mat and see if is max min or nothing
-        for (const glm::vec3& vec : vectors) {
-            glm::vec3 aux= apply3Matrix(vec,matModel);
+        for (const glm::vec4& vec : vectors) {
+            glm::vec4 aux= apply3Matrix(vec,matModel);
             minX = std::min(minX, aux.x);
             minY = std::min(minY, aux.y);
             minZ = std::min(minZ, aux.z);
@@ -199,13 +199,13 @@ class matrixRoutinesAndOBJ {
         float centerY = (minY + maxY) / 2.0f;
         float centerZ = (minZ + maxZ) / 2.0f;
 
-        return glm::vec3(centerX, centerY, centerZ);
+        return glm::vec4(centerX, centerY, centerZ,1.0f);
     }
 
     /**get real position that I see on the screen**/
-    static glm::vec3 apply3Matrix(glm::vec3 point, glm::mat4 mat) {
-        glm::vec4 tempPoint = mat * glm::vec4(point, 1.0f);
-        return glm::vec3(tempPoint.x, tempPoint.y, tempPoint.z);
+    static glm::vec4 apply3Matrix(glm::vec4 point, glm::mat4 mat) {
+        glm::vec4 tempPoint = mat * glm::vec4(point);
+        return glm::vec4(tempPoint.x, tempPoint.y, tempPoint.z,1.0f);
     }
 };
 

@@ -8,6 +8,11 @@
 
 #include "openglwindow.h"
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 
 class GeometryRender : public OpenGLWindow
 {
@@ -20,7 +25,7 @@ public:
     void loadGeometry();
     virtual void display() override;
 
-    std::array<glm::vec3, 2> getNormalizationPoint(const std::vector<glm::vec3>& vertices);
+    std::array<glm::vec4, 2> getNormalizationPoint(const std::vector<glm::vec4>& vertices);
     void modMat(const std::vector<std::vector<float>> &m, std::string nameMat);
     void resetMatrix(std::string name);
     void applyParallelView();
@@ -53,7 +58,7 @@ private:
 
 
     // Geometry data
-    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec4> vertices;
     std::vector<unsigned int> indices;
 
 
@@ -75,8 +80,9 @@ private:
 
     //for the gui
     int proj_current_idx = 0;
-    double xMouse=null;
-    double yMouse=null;
+    double xMouse=0;
+    double yMouse=0;
+    bool mouseActive=false;
 
     glm::mat4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
                        0.0f, 1.0f, 0.0f, 0.0f,
