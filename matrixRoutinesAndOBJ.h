@@ -88,7 +88,6 @@ class matrixRoutinesAndOBJ {
 
 //----------------------------------------
 
-
     /**Reads the OBJfile**/
     static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<unsigned int>& indices) {
         vertices.clear();

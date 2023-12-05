@@ -67,11 +67,11 @@ private:
     std::string objFilePath;
 
     float fov = 60.0f;
-    float farplane = 100.0f;
-    float nearplane = -10;
-    float top = 1.0f;
+    float farplane = 500.0f;
+    float nearplane = 1.0f;
+    float top = 10.0f;
     float obliqueScale = 0.0f;
-    float obliqueAngleRad = pi_f/4.0f;
+    float obliqueAngleRad = 0.0f;
 
     glm::vec3 cameraPos;
     glm::vec3 cameraTarget;

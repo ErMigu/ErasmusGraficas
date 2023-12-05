@@ -79,33 +79,27 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 break;
 
             case GLFW_KEY_E: //Camera positive y-axis
-                cameraPos=glm::vec3(cameraPos.x,cameraPos.y+0.1f,cameraPos.z);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.0f,+0.2f,0.0f)*V;
                 break;
 
             case GLFW_KEY_Q: //Camera negative y-axis
-                cameraPos=glm::vec3(cameraPos.x,cameraPos.y-0.1f,cameraPos.z);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.0f,-0.2f,0.0f)*V;
                 break;
 
             case GLFW_KEY_D: //Camera positive x-axis
-                cameraPos=glm::vec3(cameraPos.x+0.1f,cameraPos.y,cameraPos.z);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
                 break;
 
             case GLFW_KEY_A: //Camera negative x-axis
-                cameraPos=glm::vec3(cameraPos.x-0.1f,cameraPos.y,cameraPos.z);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
                 break;
 
             case GLFW_KEY_W: //Camera negative z-axis
-                cameraPos=glm::vec3(cameraPos.x,cameraPos.y,cameraPos.z+0.1f);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.0f,0.0f,0.2f)*V;
                 break;
 
             case GLFW_KEY_S: //Camera positive z-axis
-                cameraPos=glm::vec3(cameraPos.x,cameraPos.y,cameraPos.z-0.1f);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.0f,0.0f,-0.2f)*V;
                 break;
         }
         display();
@@ -119,20 +113,16 @@ void GeometryRender::mouseCallback(GLFWwindow* window, double xpos, double ypos)
         if(mouseActive == true) {
             double deltaX = xpos - xMouse; double deltaY = ypos - yMouse;
             if(deltaX > 0) { //caso derecha
-                cameraPos=glm::vec3(cameraPos.x+0.1f,cameraPos.y,cameraPos.z);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
             } else {
                 if(deltaX < 0) { //caso izq
-                    cameraPos=glm::vec3(cameraPos.x-0.1f,cameraPos.y,cameraPos.z);
-                    V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                    V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
                 } else {
                     if(deltaY > 0) { //caso abajo
-                        cameraPos=glm::vec3(cameraPos.x,cameraPos.y-0.1f,cameraPos.z);
-                        V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                        V=matrixRoutinesAndOBJ::translate(0.0f,-0.2f,0.0f)*V;
                     } else {
                         if (deltaY < 0) { //caso arriba
-                            cameraPos=glm::vec3(cameraPos.x,cameraPos.y+0.1f,cameraPos.z);
-                            V=glm::lookAt(cameraPos,cameraTarget,upVector);
+                            V=matrixRoutinesAndOBJ::translate(0.0f,+0.2f,0.0f)*V;
                         }
                     }
                 }
@@ -173,8 +163,8 @@ void GeometryRender::initialize()
     locView = glGetUniformLocation(program,"V");
 
     //Initializes matrixes
-    cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
-    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
+    cameraTarget = glm::vec3(0.0f, 0.0f, -1.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
     V=glm::lookAt(cameraPos,cameraTarget,upVector);
 
@@ -315,7 +305,7 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
             ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
-            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
+            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 90, "%1.0f", flags);
 
             applyParallelView();
         }
@@ -325,7 +315,6 @@ void GeometryRender::DrawGui()
 
 /**Update the view and display it**/
 void GeometryRender::applyParallelView(){
-    resetMatrix("P");
     float aspectRatioo = (float) width()/height();
     float right=top*aspectRatioo;
     float left=-right;
@@ -344,7 +333,6 @@ void GeometryRender::applyParallelView(){
 
 /**Update the view and display it**/
 void GeometryRender::applyPerspectiveView(){
-    resetMatrix("P");
     std::cout << fov << "  " << aspectRatio << "  " << nearplane << "  " << farplane<<std::endl;
     glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, nearplane, farplane);
 
@@ -369,7 +357,7 @@ void GeometryRender::resetMatrix(std::string name) {
                     P[i][j] = 0.0f;
                 }
         }
-        cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+        cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
         V=glm::lookAt(cameraPos,cameraTarget,upVector);
     }else{
         if(name=="matModel"){
@@ -383,7 +371,7 @@ void GeometryRender::resetMatrix(std::string name) {
             }
         }else{
             if(name=="V") {
-                cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+                cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
                 V=glm::lookAt(cameraPos,cameraTarget,upVector);
             }else{
                 if(name=="P"){
@@ -451,12 +439,12 @@ void GeometryRender::fullPrint(){
     }
     std::cout << std::endl;std::cout << std::endl;
 
-    /*
     std::cout << std::endl;
     for (int i=0; i<vertices.size(); i++) {
-        std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
+        glm::vec4 transformed_vertex = P * V * matModel * vertices[i];
+        //std::cout << transformed_vertex.x << " " << transformed_vertex.y << " " << transformed_vertex.z << std::endl;
     }
-    std::cout << std::endl;std::cout << std::endl;*/
+    std::cout << std::endl;std::cout << std::endl;
 }
 
 
