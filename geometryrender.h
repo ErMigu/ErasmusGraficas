@@ -76,8 +76,8 @@ private:
     float fov = 60.0f;
     float farplane = 500.0f;
     float top = 1.0f; //input
-    float obliqueScale = 0.0f;
-    float obliqueAngleRad = 15;
+    float obliqueScale = 0;
+    float obliqueAngleRad = glm::radians(15.0f);
     float aspectRatio = (float) width()/height();
     float nearplane = 1.0f;
     float right = 0;
