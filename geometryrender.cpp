@@ -40,42 +40,42 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
 
             case GLFW_KEY_LEFT: //rotate case
                 std::cout << "Left arrow key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::rotate(vertices, 0.0f,-10.0f,0.0f, matModel)*matModel;
+                matModel=matrixRoutinesAndOBJ::rotate(0.0f,-10.0f,0.0f, matModel);
                 break;
 
             case GLFW_KEY_RIGHT: //rotate case
                 std::cout << "Right arrow key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::rotate(vertices, 0.0f, 10.0f, 0.0f, matModel)*matModel;
+                matModel=matrixRoutinesAndOBJ::rotate(0.0f, 10.0f, 0.0f, matModel);
                 break;
 
             case GLFW_KEY_UP: //rotate case
                 std::cout << "Up arrow key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::rotate(vertices, -10.0f, 0.0f, 0.0f, matModel)*matModel;
+                matModel=matrixRoutinesAndOBJ::rotate(-10.0f, 0.0f, 0.0f, matModel);
                 break;
 
             case GLFW_KEY_DOWN: //rotate case
                 std::cout << "Down arrow key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::rotate(vertices, 10.0f, 0.0f, 0.0f, matModel)*matModel;
+                matModel=matrixRoutinesAndOBJ::rotate(10.0f, 0.0f, 0.0f, matModel);
                 break;
 
             case GLFW_KEY_J: //translate case
                 std::cout << "J key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f)*matModel;
+                matModel=matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_L: //translate case
                 std::cout << "L key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::translate(-0.1f, 0.0f, 0.0f)*matModel;
+                matModel=matrixRoutinesAndOBJ::translate(0.1f, 0.0f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_I: //translate case
                 std::cout << "I key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f)*matModel;
+                matModel=matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_K: //translate case
                 std::cout << "K key pressed." << std::endl;
-                matModel=matrixRoutinesAndOBJ::translate(0.0f, 0.1f, 0.0f)*matModel;
+                matModel=matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f)*matModel;
                 break;
 
             case GLFW_KEY_E: //Camera positive y-axis
@@ -87,11 +87,11 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 break;
 
             case GLFW_KEY_D: //Camera positive x-axis
-                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
+                V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
                 break;
 
             case GLFW_KEY_A: //Camera negative x-axis
-                V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
+                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
                 break;
 
             case GLFW_KEY_W: //Camera negative z-axis
@@ -113,16 +113,16 @@ void GeometryRender::mouseCallback(GLFWwindow* window, double xpos, double ypos)
         if(mouseActive == true) {
             double deltaX = xpos - xMouse; double deltaY = ypos - yMouse;
             if(deltaX > 0) { //caso derecha
-                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
+                V=matrixRoutinesAndOBJ::translate(-0.02f,0.0f,0.0f)*V;
             } else {
                 if(deltaX < 0) { //caso izq
-                    V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
+                    V=matrixRoutinesAndOBJ::translate(0.02f,0.0f,0.0f)*V;
                 } else {
                     if(deltaY > 0) { //caso abajo
-                        V=matrixRoutinesAndOBJ::translate(0.0f,-0.2f,0.0f)*V;
+                        V=matrixRoutinesAndOBJ::translate(0.0f,0.02f,0.0f)*V;
                     } else {
                         if (deltaY < 0) { //caso arriba
-                            V=matrixRoutinesAndOBJ::translate(0.0f,+0.2f,0.0f)*V;
+                            V=matrixRoutinesAndOBJ::translate(0.0f,-0.02f,0.0f)*V;
                         }
                     }
                 }
@@ -163,16 +163,20 @@ void GeometryRender::initialize()
     locView = glGetUniformLocation(program,"V");
 
     //Initializes matrixes
-    cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
-    cameraTarget = glm::vec3(0.0f, 0.0f, -1.0f);
+    matModel=glm::mat4(1.0f);
+    P=glm::mat4(1.0f);
+    V=glm::mat4(1.0f);
+
+    cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+
     V=glm::lookAt(cameraPos,cameraTarget,upVector);
 
-
     //Load the matrixes into the shader
-    glUniformMatrix4fv(locModel, 1, GL_TRUE,glm::value_ptr(matModel));
-    glUniformMatrix4fv(locView,1,GL_TRUE,glm::value_ptr(V));
-    glUniformMatrix4fv(locProjection,1,GL_TRUE,glm::value_ptr(P));
+    glUniformMatrix4fv(locModel, 1, GL_FALSE,glm::value_ptr(matModel));
+    glUniformMatrix4fv(locProjection,1,GL_FALSE,glm::value_ptr(P));
+    glUniformMatrix4fv(locView,1,GL_FALSE,glm::value_ptr(V));
 
     // Creat a vertex array object
     glGenVertexArrays(1, &vao);
@@ -210,7 +214,7 @@ void GeometryRender::initialize()
 /**Only to load OBJs**/
 void GeometryRender::loadGeometry(void)
 {
-    resetMatrix("all");
+    matModel=glm::mat4(1.0f);
     if(vertices.empty()){
         matrixRoutinesAndOBJ::readOBJ("cube.obj",vertices,indices);
     }
@@ -240,9 +244,9 @@ void GeometryRender::display()
     glUseProgram(program);
     glBindVertexArray(vao);
 
-    glUniformMatrix4fv(locModel, 1, GL_TRUE, glm::value_ptr(matModel));
-    glUniformMatrix4fv(locProjection, 1, GL_TRUE, glm::value_ptr(P));
-    glUniformMatrix4fv(locView, 1, GL_TRUE, glm::value_ptr(V));
+    glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(matModel));
+    glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(P));
+    glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(V));
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -282,7 +286,6 @@ void GeometryRender::DrawGui()
                 objFilePath = fileDialog.GetCurrentPath();
                 cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
 
-                resetMatrix("all");
                 matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
 
                 loadGeometry();
@@ -305,30 +308,12 @@ void GeometryRender::DrawGui()
             ImGui::SliderFloat("Top",&top, 1.0f, 100.0f, "%.1f", flags);
             ImGui::SliderFloat("Far",&farplane, 1.0f, 1000.0f, "%1.0f", flags);
             ImGui::SliderFloat("Oblique scale",&obliqueScale, 0.0f, 1.0f, "%.1f", flags);
-            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 90, "%1.0f", flags);
+            ImGui::SliderAngle("Oblique angle",&obliqueAngleRad, 15, 75, "%1.0f", flags);
 
             applyParallelView();
         }
     }
     ImGui::End();
-}
-
-/**Update the view and display it**/
-void GeometryRender::applyParallelView(){
-    float aspectRatioo = (float) width()/height();
-    float right=top*aspectRatioo;
-    float left=-right;
-    float bottom=-top;
-
-    glm::mat4 st=glm::ortho(left, right, bottom, top, nearplane, farplane);
-    glm::mat4 H = {
-            {1, 0, obliqueScale * std::cos(obliqueAngleRad), 0},
-            {0, 1, obliqueScale * std::sin(obliqueAngleRad), 0},
-            {0, 0, 1, 0},
-            {0, 0, 0, 1}};
-
-    P=st*H;
-    display();
 }
 
 /**Update the view and display it**/
@@ -340,54 +325,29 @@ void GeometryRender::applyPerspectiveView(){
     display();
 }
 
+/**Update the view and display it**/
+void GeometryRender::applyParallelView(){
+    aspectRatio = (float) width()/height();
+    right = top * aspectRatio;
+    left = -right;
+    bottom = -top;
+    glm::mat4 st=glm::ortho(left, right, bottom, top, nearplane, farplane);
+
+    if(obliqueScale > 0.0f){
+        glm::mat4 H = glm::mat4(1.0f);
+        H[2][0] = obliqueScale * cos(obliqueAngleRad);
+        H[2][1] = obliqueScale * sin(obliqueAngleRad);
+        P=st*H*matrixRoutinesAndOBJ::translate(0.0f, obliqueScale*3, 0.0f)*matrixRoutinesAndOBJ::translate(obliqueScale*3, 0.0f, 0.0f);
+    }else{
+        P=st;
+    }
+
+    display();
+}
+
 
 //--------------------------------------------------------
 
-
-/**Reset the filter matrix completely**/
-void GeometryRender::resetMatrix(std::string name) {
-    if(name=="all"){
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j)
-                if (i==j) {
-                    matModel[i][j] = 1.0f;
-                    P[i][j] = 1.0f;
-                } else {
-                    matModel[i][j] = 0.0f;
-                    P[i][j] = 0.0f;
-                }
-        }
-        cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
-        V=glm::lookAt(cameraPos,cameraTarget,upVector);
-    }else{
-        if(name=="matModel"){
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j)
-                    if (i==j) {
-                        matModel[i][j] = 1.0f;
-                    } else {
-                        matModel[i][j] = 0.0f;
-                    }
-            }
-        }else{
-            if(name=="V") {
-                cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
-                V=glm::lookAt(cameraPos,cameraTarget,upVector);
-            }else{
-                if(name=="P"){
-                    for (int i = 0; i < 4; ++i) {
-                        for (int j = 0; j < 4; ++j)
-                            if (i==j) {
-                                P[i][j] = 1.0f;
-                            } else {
-                                P[i][j] = 0.0f;
-                            }
-                    }
-                }
-            }
-        }
-    }
-}
 
 /**Give the 2 corners of the cube that contains the obj**/
 std::array<glm::vec4, 2> GeometryRender::getNormalizationPoint(const std::vector<glm::vec4>& vertices){
@@ -410,6 +370,7 @@ std::array<glm::vec4, 2> GeometryRender::getNormalizationPoint(const std::vector
     return {left_bottom_near, right_top_far};
 }
 
+/**Full print of the matrix (they are all already transposed)**/
 void GeometryRender::fullPrint(){
     std::cout << "MATMODEL";
     std::cout << std::endl;
@@ -438,13 +399,13 @@ void GeometryRender::fullPrint(){
         std::cout << std::endl;
     }
     std::cout << std::endl;std::cout << std::endl;
-
+    /*
     std::cout << std::endl;
     for (int i=0; i<vertices.size(); i++) {
         glm::vec4 transformed_vertex = P * V * matModel * vertices[i];
-        //std::cout << transformed_vertex.x << " " << transformed_vertex.y << " " << transformed_vertex.z << std::endl;
+        std::cout << transformed_vertex.x << " " << transformed_vertex.y << " " << transformed_vertex.z << std::endl;
     }
-    std::cout << std::endl;std::cout << std::endl;
+    std::cout << std::endl;std::cout << std::endl;*/
 }
 
 

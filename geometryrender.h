@@ -27,7 +27,7 @@ public:
 
     std::array<glm::vec4, 2> getNormalizationPoint(const std::vector<glm::vec4>& vertices);
     void modMat(const std::vector<std::vector<float>> &m, std::string nameMat);
-    void resetMatrix(std::string name);
+    void resetMatrix();
     void applyParallelView();
     void applyPerspectiveView();
     void applyMove(float x, float y, float z);
@@ -66,36 +66,31 @@ private:
     std::string objFileName;
     std::string objFilePath;
 
-    float fov = 60.0f;
-    float farplane = 500.0f;
-    float nearplane = 1.0f;
-    float top = 10.0f;
-    float obliqueScale = 0.0f;
-    float obliqueAngleRad = 0.0f;
-
-    glm::vec3 cameraPos;
-    glm::vec3 cameraTarget;
-    glm::vec3 upVector;
-
-
     //for the gui
     int proj_current_idx = 0;
     double xMouse=0;
     double yMouse=0;
     bool mouseActive=false;
 
-    glm::mat4 matModel = {1.0f, 0.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f, 0.0f,
-                       0.0f, 0.0, 1.0, 0.0f,
-                       0.0f, 0.0f, 0.0f, 1.0f};
+    //biews
+    float fov = 60.0f;
+    float farplane = 500.0f;
+    float top = 1.0f; //input
+    float obliqueScale = 0.0f;
+    float obliqueAngleRad = 15;
+    float aspectRatio = (float) width()/height();
+    float nearplane = 1.0f;
+    float right = 0;
+    float left = 0;
+    float bottom = 0;
 
-    glm::mat4 P = {1.0f, 0.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f, 0.0f,
-                       0.0f, 0.0, 1.0, 0.0f,
-                       0.0f, 0.0f, 0.0f, 1.0f};
+    //ca,era
+    glm::vec3 cameraPos;
+    glm::vec3 cameraTarget;
+    glm::vec3 upVector;
 
-    glm::mat4 V = {1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0, 1.0, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f};
+    //mat
+    glm::mat4 matModel;
+    glm::mat4 P;
+    glm::mat4 V;
 };

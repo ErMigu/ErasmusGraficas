@@ -16,77 +16,33 @@
 #include "glm/ext.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
-class matrixRoutinesAndOBJ {
-    public:
+class matrixRoutinesAndOBJ { public:
+//----------------------------------------
+
 
     /**Direct translation function**/
-    static glm::mat4 translate(float dx, float dy, float dz) {
-        glm::mat4 M{
-                {1, 0, 0, dx},
-                {0, 1, 0, dy},
-                {0, 0, 1, dz},
-                {0, 0, 0, 1}
-        };
-
-        return M;
+    static glm::mat4 translate(float x, float y, float z) {
+        return glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
     }
 
     /**Direct scaling function**/
-    static glm::mat4 scale(float sx, float sy, float sz) {
-        glm::mat4 M{
-                {sx, 0, 0, 0},
-                {0, sy, 0, 0},
-                {0, 0, sz, 0},
-                {0, 0, 0, 1}
-        };
-
-        return M;
+    static glm::mat4 scale(float x, float y, float z, glm::mat4 matModel) {
+        return glm::scale(matModel, glm::vec3(x, y, z));
     }
 
     /**Direct rotation**/
-    static glm::mat4 rotate(const std::vector<glm::vec4>& vectors, float degreex, float degreey, float degreez, glm::mat4 matModel) {
-        //getting the center of the object
-        glm::vec4 center(0.0f, 0.0f, 0.0f,1.0f);
-        center = calculateCenter(vectors,matModel);
-
-        //translate to 0,0,0
-        glm::mat4 M1 = translate(-center.x, -center.y, -center.z);
-
-        //rotate
-        glm::mat4 M2;
-        if (degreex != 0.0f) { // rotatex
-            float rad = degreex * M_PI / 180.0f;
-            M2 = {
-                    {1, 0, 0, 0},
-                    {0, std::cos(rad), -std::sin(rad), 0},
-                    {0, std::sin(rad), std::cos(rad), 0},
-                    {0, 0, 0, 1}
-            };
-        } else if (degreey != 0.0f) { // rotatey
-            float rad = degreey * M_PI / 180.0f;
-            M2 = {
-                    {std::cos(rad), 0, std::sin(rad), 0},
-                    {0, 1, 0, 0},
-                    {-std::sin(rad), 0, std::cos(rad), 0},
-                    {0, 0, 0, 1}
-            };
-        } else if (degreez != 0.0f) { // rotatez
-            float rad = degreez * M_PI / 180.0f;
-            M2 = {
-                    {std::cos(rad), -std::sin(rad), 0, 0},
-                    {std::sin(rad), std::cos(rad), 0, 0},
-                    {0, 0, 1, 0},
-                    {0, 0, 0, 1}
-            };
-        }
-
-        //translate to the original place
-        glm::mat4 M3 = translate(center.x, center.y, center.z);
-        return M3*M2*M1;
+    static glm::mat4 rotate(float degreex, float degreey, float degreez, glm::mat4 matModel) {
+        if(degreex != 0)
+            return glm::rotate(matModel, glm::radians(degreex), glm::vec3(1, 0, 0));
+        else if(degreey != 0)
+            return glm::rotate(matModel, glm::radians(degreey), glm::vec3(0, 1, 0));
+        else if(degreez != 0)
+            return glm::rotate(matModel, glm::radians(degreez), glm::vec3(0, 0, 1));
     }
 
 
 //----------------------------------------
+
 
     /**Reads the OBJfile**/
     static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<unsigned int>& indices) {
@@ -161,7 +117,7 @@ class matrixRoutinesAndOBJ {
         float scale = 1.0f / maxRange;
 
         //normalize
-        glm::mat4 aux= matrixRoutinesAndOBJ::scale(scale,scale,scale);
+        glm::mat4 aux= matrixRoutinesAndOBJ::scale(scale,scale,scale,glm::mat4(1.0f));
         if(changeVertices){ //to apply to the vertex directly only the first time, and move it to 0,0,0
             for(unsigned int i=0; i<vertices.size(); i++){
                 vertices[i].x=vertices[i].x*scale;
@@ -206,9 +162,7 @@ class matrixRoutinesAndOBJ {
         glm::vec4 tempPoint = mat * glm::vec4(point);
         return glm::vec4(tempPoint.x, tempPoint.y, tempPoint.z,1.0f);
     }
-};
 
 
 //----------------------------------------
-
-
+};
