@@ -41,50 +41,62 @@ private:
     // Program
     GLuint program;
 
-
     // OpenGL buffers
     GLuint vao;
     GLuint vBuffer;
     GLuint iBuffer;
-
 
     // OpenGL attribute locations
     GLuint locVertices;
     GLuint locModel;
     GLuint locProjection;
     GLuint locView;
-
     void debugShader(void) const;
-
 
     // Geometry data
     std::vector<glm::vec4> vertices;
     std::vector<unsigned int> indices;
 
-
     // GuiVar
     std::string objFileName;
     std::string objFilePath;
-
-    //for the gui
+    std::string textureFileName;
+    std::string textureFilePath;
+    bool textureShow = false;
     int proj_current_idx = 0;
+
+    // For the mouse camera rotation
     double xMouse=0;
     double yMouse=0;
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+    const float sensibility = 0.1f;
+    const float movScale = 0.25f;
     bool mouseActive=false;
 
-    //biews
+    //views
     float fov = 60.0f;
-    float farplane = 500.0f;
-    float top = 1.0f; //input
+    float aspectRatio = (float) width()/height();
     float obliqueScale = 0;
     float obliqueAngleRad = glm::radians(15.0f);
-    float aspectRatio = (float) width()/height();
-    float nearplane = 1.0f;
+    float farplane = 500.0f;
+    float nearplane = 0.1f;
+    float top = 1.0f;
     float right = 0;
     float left = 0;
     float bottom = 0;
 
-    //ca,era
+    //Lights/Textures
+    float lightPos[3] = {0.0f, 0.0f, 0.0f};
+    float lightColor[3] = {1.0f, 1.0f, 1.0f};
+    float ambientColor[3] = {0.2f, 0.2f, 0.2f};
+
+    float materialAmbient[3] = {.5f, .5f, .5f};
+    float materialDiffuse[3] = {.5f, .5f, .5f};
+    float materialSpecular[3] = {.5f, .5f, .5f};
+    float materialShininess = 1.0f;
+
+    //camera
     glm::vec3 cameraPos;
     glm::vec3 cameraTarget;
     glm::vec3 upVector;

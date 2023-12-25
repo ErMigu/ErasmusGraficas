@@ -26,6 +26,7 @@ void GeometryRender::debugShader(void) const
 
 /**Key detection callback**/
 void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    glm::vec3 mov;
     if (action == GLFW_PRESS) {
         std::string filename;
         switch (key) {
@@ -78,28 +79,46 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 matModel=matrixRoutinesAndOBJ::translate(0.0f, -0.1f, 0.0f)*matModel;
                 break;
 
-            case GLFW_KEY_E: //Camera positive y-axis
-                V=matrixRoutinesAndOBJ::translate(0.0f,+0.2f,0.0f)*V;
+            case GLFW_KEY_E: // Cámara eje y positivo
+                mov = glm::vec3(0.0, movScale, 0.0);
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
 
-            case GLFW_KEY_Q: //Camera negative y-axis
-                V=matrixRoutinesAndOBJ::translate(0.0f,-0.2f,0.0f)*V;
+            case GLFW_KEY_Q: // Cámara eje y negativo
+                mov = glm::vec3(0.0, -movScale, 0.0);
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
 
-            case GLFW_KEY_D: //Camera positive x-axis
-                V=matrixRoutinesAndOBJ::translate(-0.2f,0.0f,0.0f)*V;
+            case GLFW_KEY_W: // Mover hacia adelante
+                mov = glm::normalize(cameraTarget - cameraPos)*movScale;
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
 
-            case GLFW_KEY_A: //Camera negative x-axis
-                V=matrixRoutinesAndOBJ::translate(0.2f,0.0f,0.0f)*V;
+            case GLFW_KEY_S: // Mover hacia atrás
+                mov = -glm::normalize(cameraTarget - cameraPos)*movScale;
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
 
-            case GLFW_KEY_W: //Camera negative z-axis
-                V=matrixRoutinesAndOBJ::translate(0.0f,0.0f,0.2f)*V;
+            case GLFW_KEY_A: // Mover hacia la izquierda
+                mov = -glm::normalize(glm::cross(cameraTarget - cameraPos, upVector))*movScale;
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
 
-            case GLFW_KEY_S: //Camera positive z-axis
-                V=matrixRoutinesAndOBJ::translate(0.0f,0.0f,-0.2f)*V;
+            case GLFW_KEY_D: // Mover hacia la derecha
+                mov = glm::normalize(glm::cross(cameraTarget - cameraPos, upVector))*movScale;
+                cameraTarget += mov; // Mueve el objetivo de la cámara
+                cameraPos += mov; // Actualiza la posición de la cámara
+                V = glm::lookAt(cameraPos, cameraTarget, upVector);
                 break;
         }
         display();
@@ -111,30 +130,26 @@ void GeometryRender::mouseCallback(GLFWwindow* window, double xpos, double ypos)
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) {
         if(mouseActive == true) {
-            double deltaX = xpos - xMouse; double deltaY = ypos - yMouse;
-            if(deltaX > 0) { //caso derecha
-                V=matrixRoutinesAndOBJ::translate(-0.02f,0.0f,0.0f)*V;
-            } else {
-                if(deltaX < 0) { //caso izq
-                    V=matrixRoutinesAndOBJ::translate(0.02f,0.0f,0.0f)*V;
-                } else {
-                    if(deltaY > 0) { //caso abajo
-                        V=matrixRoutinesAndOBJ::translate(0.0f,0.02f,0.0f)*V;
-                    } else {
-                        if (deltaY < 0) { //caso arriba
-                            V=matrixRoutinesAndOBJ::translate(0.0f,-0.02f,0.0f)*V;
-                        }
-                    }
-                }
-            }
-            xMouse = xpos;
-            yMouse = ypos;
+            float deltaX = (xpos - xMouse) * sensibility; float deltaY = (ypos - yMouse) * sensibility;
+
+            yaw += deltaX;
+            pitch -= deltaY;
+            if (pitch > 89.0f) pitch = 89.0f;
+            if (pitch < -89.0f) pitch = -89.0f;
+
+            glm::vec3 front;
+            front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+            front.y = sin(glm::radians(pitch));
+            front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+            cameraTarget = cameraPos + glm::normalize(front);
+            V = glm::lookAt(cameraPos, cameraTarget, upVector);
             display();
         }else{
             mouseActive=true;
-            xMouse = xpos;
-            yMouse = ypos;
         }
+        xMouse = xpos;
+        yMouse = ypos;
     }else{ //si dejo de pulsar, pongo el mouse en nada
         mouseActive=false;
     }
@@ -273,8 +288,9 @@ void GeometryRender::DrawGui()
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing dear imgui context.");
     static ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp;
     static ImGuiFileDialog fileDialog;
-
+    static ImGuiFileDialog textureDialog;
     ImGui::Begin("3D Studio");
+
     if (ImGui::CollapsingHeader("OBJ File")) {
         ImGui::Text("OBJ file: %s", objFileName.c_str());
         if (ImGui::Button("Open File"))
@@ -292,6 +308,54 @@ void GeometryRender::DrawGui()
                 display();
             }
             fileDialog.Close();
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Light")) { //TODO
+        ImGui::Text("Light source position");
+        ImGui::PushItemWidth(100);
+        ImGui::InputFloat("x", &lightPos[0], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+        ImGui::InputFloat("y", &lightPos[1], 0.5f, 1.0f, "%1.1f"); ImGui::SameLine();
+        ImGui::InputFloat("z", &lightPos[2], 0.5f, 1.0f, "%1.1f");
+        ImGui::PopItemWidth();
+
+        ImGui::Text("Light source intensity:");
+        ImGui::ColorEdit3("Light", lightColor);
+
+        ImGui::Text("Ambient light intensity:");
+        ImGui::ColorEdit3("Ambient", ambientColor);
+    }
+
+    if (ImGui::CollapsingHeader("Object Material")) { //TODO
+        ImGui::Text("Ambient coefficient:");
+        ImGui::ColorEdit3("Ambient color", materialAmbient);
+
+        ImGui::Text("Diffuse coefficient:");
+        ImGui::ColorEdit3("Diffuse color", materialDiffuse);
+
+        ImGui::Text("Specular coefficient:");
+        ImGui::ColorEdit3("Specular color", materialSpecular);
+
+        ImGui::SliderFloat("Shininess", &materialShininess, 1.0f, 1000.0f, "%1.0f", flags);
+    }
+
+    if (ImGui::CollapsingHeader("Object Texture")) { //TODO
+        ImGui::Checkbox("Show texture", &textureShow);
+        ImGui::Text("Texture file: %s", textureFileName.c_str());
+        if (ImGui::Button("Open Texture File"))
+            textureDialog.OpenDialog("ChooseFileDlgKey", "Choose Texture File",
+                                     ".jpg,.bmp,.dds,.hdr,.pic,.png,.psd,.tga", ".");
+
+        if (textureDialog.Display("ChooseFileDlgKey")) {
+            if (textureDialog.IsOk() == true) {
+                textureFileName = textureDialog.GetCurrentFileName();
+                textureFilePath = textureDialog.GetCurrentPath();
+                cout << "Texture file: " << textureFileName << endl << "Path: " << textureFilePath << endl;
+            } else {
+                // Return a message to the user if the file could not be opened
+            }
+            // close
+            textureDialog.Close();
         }
     }
 
