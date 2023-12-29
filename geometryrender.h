@@ -48,14 +48,23 @@ private:
 
     // OpenGL attribute locations
     GLuint locVertices;
+    GLuint locNormals;
     GLuint locModel;
     GLuint locProjection;
     GLuint locView;
+    GLuint locLightPos;
+    GLuint locLightColor;
+    GLuint locMaterialAmbient;
+    GLuint locMaterialDiffuse;
+    GLuint locMaterialSpecular;
+    GLuint locMaterialShininess;
     void debugShader(void) const;
 
     // Geometry data
     std::vector<glm::vec4> vertices;
+    std::vector<glm::vec4> normals;
     std::vector<unsigned int> indices;
+    std::vector<unsigned int> indicesN;
 
     // GuiVar
     std::string objFileName;
@@ -86,11 +95,12 @@ private:
     float left = 0;
     float bottom = 0;
 
-    //Lights/Textures
+    //Lights
     float lightPos[3] = {0.0f, 0.0f, 0.0f};
     float lightColor[3] = {1.0f, 1.0f, 1.0f};
     float ambientColor[3] = {0.2f, 0.2f, 0.2f};
 
+    //Material
     float materialAmbient[3] = {.5f, .5f, .5f};
     float materialDiffuse[3] = {.5f, .5f, .5f};
     float materialSpecular[3] = {.5f, .5f, .5f};

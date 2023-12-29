@@ -34,7 +34,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 std::cout << "Enter the name of the .obj file: ";
                 std::cin >> filename;
 
-                matrixRoutinesAndOBJ::readOBJ(filename, vertices, indices);
+                matrixRoutinesAndOBJ::readOBJ(filename, vertices, normals, indices, indicesN);
 
                 loadGeometry();
                 break;
@@ -176,22 +176,24 @@ void GeometryRender::initialize()
     locModel = glGetUniformLocation(program,"M");
     locProjection = glGetUniformLocation(program,"P");
     locView = glGetUniformLocation(program,"V");
+    locNormals = glGetAttribLocation(program, "vNormal");
+    locLightPos = glGetUniformLocation(program, "lightPos");
+    locLightColor = glGetUniformLocation(program, "lightColor");
+    locMaterialAmbient = glGetUniformLocation(program, "materialAmbient");
+    locMaterialDiffuse = glGetUniformLocation(program, "materialDiffuse");
+    locMaterialSpecular = glGetUniformLocation(program, "materialSpecular");
+    locMaterialShininess = glGetUniformLocation(program, "materialShininess");
 
     //Initializes matrixes
     matModel=glm::mat4(1.0f);
     P=glm::mat4(1.0f);
     V=glm::mat4(1.0f);
 
+    //Initializes the camera
     cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-
     V=glm::lookAt(cameraPos,cameraTarget,upVector);
-
-    //Load the matrixes into the shader
-    glUniformMatrix4fv(locModel, 1, GL_FALSE,glm::value_ptr(matModel));
-    glUniformMatrix4fv(locProjection,1,GL_FALSE,glm::value_ptr(P));
-    glUniformMatrix4fv(locView,1,GL_FALSE,glm::value_ptr(V));
 
     // Creat a vertex array object
     glGenVertexArrays(1, &vao);
@@ -202,7 +204,7 @@ void GeometryRender::initialize()
     glGenBuffers( 1, &vBuffer);
     glBindBuffer( GL_ARRAY_BUFFER, vBuffer);
 
-    /* Create buffer in the shared display list space and 
+    /* Create buffer in the shared display list space and
        bind it as GL_ELEMENT_ARRAY_BUFFER */
     glGenBuffers(1, &iBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
@@ -213,16 +215,6 @@ void GeometryRender::initialize()
     glBindVertexArray(0);
     glUseProgram(0);
 
-    std::cout << "V";
-    std::cout << std::endl;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            std::cout << V[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;std::cout << std::endl;
-
     loadGeometry();
 }
 
@@ -231,7 +223,7 @@ void GeometryRender::loadGeometry(void)
 {
     matModel=glm::mat4(1.0f);
     if(vertices.empty()){
-        matrixRoutinesAndOBJ::readOBJ("cube.obj",vertices,indices);
+        matrixRoutinesAndOBJ::readOBJ("sphere.obj",vertices,normals,indices,indicesN);
     }
 
     glUseProgram(program);
@@ -246,6 +238,17 @@ void GeometryRender::loadGeometry(void)
     size_t iSize = indices.size()*sizeof(unsigned int);
     glBufferData( GL_ARRAY_BUFFER, vSize, vertices.data(), GL_STATIC_DRAW );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, iSize, indices.data(), GL_STATIC_DRAW );
+
+    // Cargar datos de normales
+    size_t nSize = normals.size() * sizeof(glm::vec4);
+    GLuint normalBuffer;
+    glGenBuffers(1, &normalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+    glBufferData(GL_ARRAY_BUFFER, nSize, normals.data(), GL_STATIC_DRAW);
+
+    // Configurar atributos de normales
+    glVertexAttribPointer(locNormals, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(locNormals);
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -263,11 +266,19 @@ void GeometryRender::display()
     glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(P));
     glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(V));
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Call OpenGL to draw the triangle
     glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+
+    // Uniform for lights and materials
+    glUniform3fv(locLightPos, 1, lightPos);
+    glUniform3fv(locLightColor, 1, lightColor);
+    glUniform3fv(locMaterialAmbient, 1, materialAmbient);
+    glUniform3fv(locMaterialDiffuse, 1, materialDiffuse);
+    glUniform3fv(locMaterialSpecular, 1, materialSpecular);
+    glUniform1f(locMaterialShininess, materialShininess);
 
     // Not to be called in release...
     debugShader();
@@ -302,7 +313,7 @@ void GeometryRender::DrawGui()
                 objFilePath = fileDialog.GetCurrentPath();
                 cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
 
-                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, indices);
+                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, normals, indices, indicesN);
 
                 loadGeometry();
                 display();
@@ -382,7 +393,6 @@ void GeometryRender::DrawGui()
 
 /**Update the view and display it**/
 void GeometryRender::applyPerspectiveView(){
-    std::cout << fov << "  " << aspectRatio << "  " << nearplane << "  " << farplane<<std::endl;
     glm::mat4 mat=glm::perspective(glm::radians(fov), aspectRatio, nearplane, farplane);
 
     P=mat;
@@ -413,29 +423,9 @@ void GeometryRender::applyParallelView(){
 //--------------------------------------------------------
 
 
-/**Give the 2 corners of the cube that contains the obj**/
-std::array<glm::vec4, 2> GeometryRender::getNormalizationPoint(const std::vector<glm::vec4>& vertices){
-    // Inicializa los puntos con el primer vértice como punto de partida
-    glm::vec4 left_bottom_near = vertices[0];
-    glm::vec4 right_top_far = vertices[0];
-
-    for (const auto& vertexDefault : vertices) {
-        glm::vec3 vertex= matrixRoutinesAndOBJ::apply3Matrix(vertexDefault,matModel);
-        // Encuentra el punto más a la izquierda, más abajo y más cercano
-        if (vertex.x < left_bottom_near.x) left_bottom_near.x=vertex.x;
-        if (vertex.y < left_bottom_near.y) left_bottom_near.y=vertex.y;
-        if (vertex.z < left_bottom_near.z) left_bottom_near.z=vertex.z;
-
-        // Encuentra el punto más a la derecha, más arriba y más lejano
-        if (vertex.x > right_top_far.x) right_top_far.x=vertex.x;
-        if (vertex.y > right_top_far.y) right_top_far.y=vertex.y;
-        if (vertex.z > right_top_far.z) right_top_far.z=vertex.z;
-    }
-    return {left_bottom_near, right_top_far};
-}
-
 /**Full print of the matrix (they are all already transposed)**/
 void GeometryRender::fullPrint(){
+    /*
     std::cout << "MATMODEL";
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
@@ -444,6 +434,7 @@ void GeometryRender::fullPrint(){
         }
         std::cout << std::endl;
     }
+
 
     std::cout << "P";
     std::cout << std::endl;
@@ -454,6 +445,7 @@ void GeometryRender::fullPrint(){
         std::cout << std::endl;
     }
 
+
     std::cout << "V";
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
@@ -463,13 +455,15 @@ void GeometryRender::fullPrint(){
         std::cout << std::endl;
     }
     std::cout << std::endl;std::cout << std::endl;
-    /*
+
+
     std::cout << std::endl;
     for (int i=0; i<vertices.size(); i++) {
         glm::vec4 transformed_vertex = P * V * matModel * vertices[i];
         std::cout << transformed_vertex.x << " " << transformed_vertex.y << " " << transformed_vertex.z << std::endl;
     }
-    std::cout << std::endl;std::cout << std::endl;*/
+    std::cout << std::endl;std::cout << std::endl;
+    */
 }
 
 
