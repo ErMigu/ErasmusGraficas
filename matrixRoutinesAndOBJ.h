@@ -46,8 +46,11 @@ class matrixRoutinesAndOBJ { public:
 
     /**Reads the OBJfile**/
     static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<glm::vec4>& normals, std::vector<unsigned int>& indices,  std::vector<unsigned int>& indicesN) {
+        std::vector<glm::vec4> normalsAux;
         vertices.clear();
+        normals.clear();
         indices.clear();
+        indicesN.clear();
 
         std::ifstream objFile("./Objs/" + name);
         if (!objFile.is_open()) {
@@ -66,100 +69,102 @@ class matrixRoutinesAndOBJ { public:
                 glm::vec4 normal;
                 lineStream >> normal.x >> normal.y >> normal.z;
                 normals.push_back(glm::vec4(normal.x,normal.y,normal.z,0.0f));
+                std::cout<<"BOMA";
             } else if (prefix == "f") { //MAIN LOOPS RN
                 char nextChar;
-                if(normals.empty()==false){ //CASE WE NEED TO READ NORMALS INDEX
-                    for (int i = 0; i < 4 and lineStream.peek()!=EOF; ++i) {
-                        unsigned int index=0;
-                        while (!isspace(lineStream.peek())) { //deleting everything is not a space
-                            lineStream.get();
-                        }
-                        while (isspace(lineStream.peek())) { //we got the space, so we delete it
-                            lineStream.get();
-                        }
-                        while (isdigit(lineStream.peek())) { //we keep every consecutive digit, case: 33,231,...
-                            lineStream >> nextChar;
-                            index = index * 10 + (nextChar - '0'); //build the number
-                        }
-                        if(i==3){ //MEANS THAT THE FILE HAS CUBES -> DIVIDE IN TRIANGLES
-                            indices.push_back(indices[indices.size()-2]); //we use the two last ones and the new one for the new triangle
-                            indices.push_back(indices[indices.size()-2]);
-                            indices.push_back(index - 1);
-                        }else{
-                            indices.push_back(index - 1); //we only do that if it's not formed by triangles
-                        }
-                        index=0;
-                        int cont = 0;
-                        while(cont<2){ //we find the normal index looking for what is after the second "/"
-                            if(lineStream.peek()=='/'){
-                                cont++;
-                            }
-                            lineStream.get();
-                        }
-                        while (isdigit(lineStream.peek())) { //we keep every consecutive digit, case: 33,231,...
-                            lineStream >> nextChar;
-                            index = index * 10 + (nextChar - '0'); //build the number
-                        }
-                        if(i==3){ //As before
-                            indicesN.push_back(indicesN[indicesN.size()-2]);
-                            indicesN.push_back(indicesN[indicesN.size()-2]);
-                            indicesN.push_back(index - 1);
-                        }else{
-                            indicesN.push_back(index - 1);
-                        }
-                    }
+                std::vector<unsigned int> aux;
 
-                }else{ //CASE WE NEED TO CALCULATE NORMALS
-                    for (int i = 0; i < 4 and lineStream.peek()!=EOF; ++i) {
-                        unsigned int index=0;
-                        while (!isspace(lineStream.peek())) { //deleting everything is not a space
-                            lineStream.get();
-                        }
-                        while (isspace(lineStream.peek())) { //we got the space, so we delete it
-                            lineStream.get();
-                        }
-                        while (isdigit(lineStream.peek())) { //we keep every consecutive digit, case: 33,231,...
-                            lineStream >> nextChar;
-                            index = index * 10 + (nextChar - '0'); //build the number
-                        }
-                        if(i==3){ //MEANS THAT THE FILE HAS CUBES -> DIVIDE IN TRIANGLES
-                            indices.push_back(indices[indices.size()-2]); //we use the two last ones and the new one for the new triangle
-                            indices.push_back(indices[indices.size()-2]);
-                            indices.push_back(index - 1);
-                        }else{
-                            indices.push_back(index - 1);
-                        }
+                while(lineStream.peek()!=EOF) { //NUMBERS FROM LINE TO ARRAY
+                    unsigned int index=0;
+                    while (!isdigit(lineStream.peek())) { //we delete everything is not a digit
+                        lineStream.get();
                     }
+                    while (isdigit(lineStream.peek())) { //we keep every consecutive digit, case: 33,231,...
+                        lineStream >> nextChar;
+                        index = index * 10 + (nextChar - '0'); //build the number
+                    }
+                    aux.push_back(index-1);
                 }
 
+                for (int i = 0; i < aux.size(); ++i) {
+                    std::cout << aux[i] << " ";
+                }std::cout << aux.size() << " " << normals.size() << std::endl;
+
+                if (normals.empty()==false) { //CASE WE NEED TO READ NORMALS INDEX
+                    std::cout<<"a";
+                    if (aux.size() == 6) { //CASE X//X X//X X//X
+                        indices.push_back(aux[0]); indices.push_back(aux[2]); indices.push_back(aux[4]);
+                        indicesN.push_back(aux[1]); indicesN.push_back(aux[3]); indicesN.push_back(aux[5]);
+                    } else if (aux.size() == 9) { //CASE X/X/X X/X/X X/X/X
+                        indices.push_back(aux[0]); indices.push_back(aux[3]); indices.push_back(aux[6]);
+                        indicesN.push_back(aux[2]); indicesN.push_back(aux[5]); indicesN.push_back(aux[8]);
+                    } else if (aux.size() == 8) { //CASE X//X X//X X//X X//X
+                        indices.push_back(aux[0]); indices.push_back(aux[2]); indices.push_back(aux[4]);
+                        indices.push_back(aux[4]); indices.push_back(aux[6]); indices.push_back(aux[0]);
+                        indicesN.push_back(aux[1]); indicesN.push_back(aux[3]); indicesN.push_back(aux[5]);
+                        indicesN.push_back(aux[5]); indicesN.push_back(aux[7]); indicesN.push_back(aux[1]);
+                    } else if (aux.size() == 12) { //CASE X/X/X X/X/X X/X/X X/X/X
+                        indices.push_back(aux[0]); indices.push_back(aux[3]); indices.push_back(aux[6]);
+                        indices.push_back(aux[6]); indices.push_back(aux[9]); indices.push_back(aux[0]);
+                        indicesN.push_back(aux[2]); indicesN.push_back(aux[5]); indicesN.push_back(aux[8]);
+                        indicesN.push_back(aux[8]); indicesN.push_back(aux[11]); indicesN.push_back(aux[2]);
+                    }
+
+                } else { //CASE WE NEED TO CALCULATE NORMALS
+                    std::cout<<"b";
+                    if (aux.size() == 3) { //CASE X X X
+                        indices.push_back(aux[0]); indices.push_back(aux[1]); indices.push_back(aux[2]);
+                    } else if (aux.size() == 4) { //CASE X X X X
+                        indices.push_back(aux[0]); indices.push_back(aux[1]); indices.push_back(aux[2]);
+                        indices.push_back(aux[2]); indices.push_back(aux[3]); indices.push_back(aux[0]);
+                    } else if (aux.size() == 6) { //CASE X//X X//X X//X
+                        indices.push_back(aux[0]); indices.push_back(aux[2]); indices.push_back(aux[4]);
+                    } else if (aux.size() == 9) { //CASE X/X/X X/X/X X/X/X
+                        indices.push_back(aux[0]); indices.push_back(aux[3]); indices.push_back(aux[6]);
+                    } else if (aux.size() == 8) { //CASE X//X X//X X//X X//X
+                        indices.push_back(aux[0]); indices.push_back(aux[2]); indices.push_back(aux[4]);
+                        indices.push_back(aux[4]); indices.push_back(aux[6]); indices.push_back(aux[0]);
+                    } else if (aux.size() == 12) { //CASE X/X/X X/X/X X/X/X X/X/X
+                        indices.push_back(aux[0]); indices.push_back(aux[3]); indices.push_back(aux[6]);
+                        indices.push_back(aux[6]); indices.push_back(aux[9]); indices.push_back(aux[0]);
+                    }
+                }
             }
         }
+        objFile.close();
 
-        if(normals.empty()) {
-            std::vector<glm::vec4> normalSums(vertices.size(), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        if (normalsAux.empty()) {
+            normals.resize(vertices.size(), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            indicesN.resize(indices.size());
 
             for (size_t i = 0; i < indices.size(); i += 3) {
-                glm::vec3 v1 = glm::vec3(vertices[indices[i]]);
-                glm::vec3 v2 = glm::vec3(vertices[indices[i + 1]]);
-                glm::vec3 v3 = glm::vec3(vertices[indices[i + 2]]);
+                // Extrae los vértices de cada triángulo
+                glm::vec3 v0 = glm::vec3(vertices[indices[i]]);
+                glm::vec3 v1 = glm::vec3(vertices[indices[i + 1]]);
+                glm::vec3 v2 = glm::vec3(vertices[indices[i + 2]]);
 
-                glm::vec3 normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+                // Calcula las aristas del triángulo
+                glm::vec3 edge1 = v1 - v0;
+                glm::vec3 edge2 = v2 - v0;
 
-                normalSums[indices[i]] += glm::vec4(normal, 0.0f);
-                normalSums[indices[i + 1]] += glm::vec4(normal, 0.0f);
-                normalSums[indices[i + 2]] += glm::vec4(normal, 0.0f);
+                // Calcula la normal de la cara (no normalizada para ponderar por área de la cara)
+                glm::vec3 faceNormal = glm::cross(edge1, edge2);
+
+                // Agrega la normal de la cara a las normales de los vértices
+                for (int j = 0; j < 3; ++j) {
+                    int vertexIndex = indices[i + j];
+                    normals[vertexIndex] += glm::vec4(faceNormal, 0.0f);
+                    indicesN[i + j] = vertexIndex; // Aquí asumimos que el índice de la normal es el mismo que el índice del vértice
+                }
             }
 
-            for (size_t i = 0; i < normalSums.size(); ++i) {
-                normals.push_back(glm::vec4(glm::normalize(glm::vec3(normalSums[i])), 0.0f));
+            // Normaliza las normales de los vértices
+            for (auto& normal : normals) {
+                normal = glm::vec4(glm::normalize(glm::vec3(normal)), 0.0f);
             }
-
-            indicesN = indices;
         }
-
-
-        objFile.close();
         normalizeObject(vertices,normals,true);
+
         std::cout << "Imprimiendo coordenadas de los vertices:" << std::endl;
         for(int i = 0; i < vertices.size(); i++){
             std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;

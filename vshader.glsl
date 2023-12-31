@@ -13,14 +13,14 @@ out vec3 normal;
 
 void main()
 {
-    // Transformación del vértice
-    fragPos = vec3(M * vPosition);
+    // Transforma las coordenadas del vértice al espacio del mundo
+    vec4 worldPosition = M * vPosition;
+    fragPos = vec3(worldPosition);
 
-    // Conversión de mat4 a mat3 para la transformación de normales
-    mat3 normalMatrix = mat3(M);
-    normal = normalize(normalMatrix * vNormal);  // Normaliza la normal transformada
+    // Transforma las normales al espacio del mundo
+    normal = normalize(mat3(M) * vNormal);
 
-    // Transformación final del vértice para la visualización
-    gl_Position = P * V * M * vPosition;
+    // Transforma las coordenadas del vértice al espacio de clip
+    gl_Position = P * V * worldPosition;
 }
 

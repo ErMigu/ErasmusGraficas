@@ -96,7 +96,7 @@ private:
     float bottom = 0;
 
     //Lights
-    float lightPos[3] = {0.0f, 0.0f, 0.0f};
+    float lightPos[3] = {1.0f, 1.0f, 1.0f};
     float lightColor[3] = {1.0f, 1.0f, 1.0f};
     float ambientColor[3] = {0.2f, 0.2f, 0.2f};
 

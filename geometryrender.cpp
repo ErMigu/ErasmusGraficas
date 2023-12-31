@@ -7,8 +7,12 @@
 
 #include "geometryrender.h"
 #include "matrixRoutinesAndOBJ.h"
-
 using namespace std;
+
+/**
+ * NOTES FOR USAGE
+ * IF A PROJECTION IS NOT APPLIED WE NEED TO KEEP THE OBJECT IN THE VIEW VOLUME
+ **/
 
 
 /**Check if any error has been reported from the shader**/
@@ -186,11 +190,11 @@ void GeometryRender::initialize()
 
     //Initializes matrixes
     matModel=glm::mat4(1.0f);
-    P=glm::mat4(1.0f);
+    applyPerspectiveView();
     V=glm::mat4(1.0f);
 
     //Initializes the camera
-    cameraPos = glm::vec3(0.0f, 0.0f, 1.0);
+    cameraPos = glm::vec3(0.0f, 0.0f, 2.0);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     upVector = glm::vec3(0.0f, 1.0f, 0.0f);
     V=glm::lookAt(cameraPos,cameraTarget,upVector);
@@ -223,7 +227,7 @@ void GeometryRender::loadGeometry(void)
 {
     matModel=glm::mat4(1.0f);
     if(vertices.empty()){
-        matrixRoutinesAndOBJ::readOBJ("sphere.obj",vertices,normals,indices,indicesN);
+        matrixRoutinesAndOBJ::readOBJ("suzanne.obj",vertices,normals,indices,indicesN);
     }
 
     glUseProgram(program);
@@ -426,7 +430,7 @@ void GeometryRender::applyParallelView(){
 /**Full print of the matrix (they are all already transposed)**/
 void GeometryRender::fullPrint(){
     /*
-    std::cout << "MATMODEL";
+     * std::cout << "MATMODEL";
     std::cout << std::endl;
     for (int i=0; i<4; i++) {
         for (int j=0; j<4; j++) {
@@ -454,16 +458,17 @@ void GeometryRender::fullPrint(){
         }
         std::cout << std::endl;
     }
-    std::cout << std::endl;std::cout << std::endl;
-
-
     std::cout << std::endl;
+     */
+
+
+    /*std::cout << std::endl;
     for (int i=0; i<vertices.size(); i++) {
         glm::vec4 transformed_vertex = P * V * matModel * vertices[i];
         std::cout << transformed_vertex.x << " " << transformed_vertex.y << " " << transformed_vertex.z << std::endl;
     }
-    std::cout << std::endl;std::cout << std::endl;
-    */
+    std::cout << std::endl;std::cout << std::endl;*/
+
 }
 
 
