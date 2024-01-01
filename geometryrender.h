@@ -12,6 +12,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "stb_image.h"
 
 
 class GeometryRender : public OpenGLWindow
@@ -36,6 +37,9 @@ public:
     void DrawGui();
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+    void LoadTexture(const std::string &, const std::string &filename);
+    void ShowTexture();
+    void UnshowTexture();
 
 private:
     // Program
@@ -58,11 +62,13 @@ private:
     GLuint locMaterialDiffuse;
     GLuint locMaterialSpecular;
     GLuint locMaterialShininess;
+    GLuint locTexture;
     void debugShader(void) const;
 
     // Geometry data
     std::vector<glm::vec4> vertices;
     std::vector<glm::vec4> normals;
+    std::vector<glm::vec2> textcoords;
     std::vector<unsigned int> indices;
     std::vector<unsigned int> indicesN;
 
@@ -96,7 +102,7 @@ private:
     float bottom = 0;
 
     //Lights
-    float lightPos[3] = {1.0f, 1.0f, 1.0f};
+    float lightPos[3] = {2.0f, 0.0f, 2.0f};
     float lightColor[3] = {1.0f, 1.0f, 1.0f};
     float ambientColor[3] = {0.2f, 0.2f, 0.2f};
 

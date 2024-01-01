@@ -2,6 +2,7 @@
 
 in vec4 vPosition;
 in vec3 vNormal;
+in vec2 texCoords;
 
 uniform mat4 M;
 uniform mat4 V;
@@ -10,6 +11,7 @@ uniform vec3 lightPos;
 
 out vec3 fragPos;
 out vec3 normal;
+out vec2 TexCoords;
 
 void main()
 {
@@ -22,5 +24,7 @@ void main()
 
     // Transforma las coordenadas del vértice al espacio de clip
     gl_Position = P * V * worldPosition;
+
+    TexCoords = texCoords;
 }
 

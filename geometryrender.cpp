@@ -38,7 +38,7 @@ void GeometryRender::keyCallback(GLFWwindow* window, int key, int scancode, int 
                 std::cout << "Enter the name of the .obj file: ";
                 std::cin >> filename;
 
-                matrixRoutinesAndOBJ::readOBJ(filename, vertices, normals, indices, indicesN);
+                matrixRoutinesAndOBJ::readOBJ(filename, vertices, normals, indices, indicesN, textcoords);
 
                 loadGeometry();
                 break;
@@ -227,7 +227,7 @@ void GeometryRender::loadGeometry(void)
 {
     matModel=glm::mat4(1.0f);
     if(vertices.empty()){
-        matrixRoutinesAndOBJ::readOBJ("suzanne.obj",vertices,normals,indices,indicesN);
+        matrixRoutinesAndOBJ::readOBJ("suzanne.obj",vertices,normals,indices,indicesN,textcoords);
     }
 
     glUseProgram(program);
@@ -284,6 +284,9 @@ void GeometryRender::display()
     glUniform3fv(locMaterialSpecular, 1, materialSpecular);
     glUniform1f(locMaterialShininess, materialShininess);
 
+    // For texture
+    glUniform1i(glGetUniformLocation(program, "tSampler"), 0);
+
     // Not to be called in release...
     debugShader();
 
@@ -317,7 +320,7 @@ void GeometryRender::DrawGui()
                 objFilePath = fileDialog.GetCurrentPath();
                 cout << "OBJ file: " << objFileName << endl << "Path: " << objFilePath << endl;
 
-                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, normals, indices, indicesN);
+                matrixRoutinesAndOBJ::readOBJ(objFileName, vertices, normals, indices, indicesN, textcoords);
 
                 loadGeometry();
                 display();
@@ -354,23 +357,31 @@ void GeometryRender::DrawGui()
         ImGui::SliderFloat("Shininess", &materialShininess, 1.0f, 1000.0f, "%1.0f", flags);
     }
 
-    if (ImGui::CollapsingHeader("Object Texture")) { //TODO
-        ImGui::Checkbox("Show texture", &textureShow);
+    if (ImGui::CollapsingHeader("Object Texture")) {
+        // Detectar cambios en el checkbox y cargar/descargar la textura según sea necesario
+        bool textureShowClicked = ImGui::Checkbox("Show texture", &textureShow);
         ImGui::Text("Texture file: %s", textureFileName.c_str());
-        if (ImGui::Button("Open Texture File"))
-            textureDialog.OpenDialog("ChooseFileDlgKey", "Choose Texture File",
-                                     ".jpg,.bmp,.dds,.hdr,.pic,.png,.psd,.tga", ".");
+        if (ImGui::Button("Open Texture File")) {
+            textureDialog.OpenDialog("ChooseFileDlgKey", "Choose Texture File", ".jpg,.bmp,.dds,.hdr,.pic,.png,.psd,.tga", ".");
+        }
 
         if (textureDialog.Display("ChooseFileDlgKey")) {
-            if (textureDialog.IsOk() == true) {
+            if (textureDialog.IsOk()) {
                 textureFileName = textureDialog.GetCurrentFileName();
                 textureFilePath = textureDialog.GetCurrentPath();
                 cout << "Texture file: " << textureFileName << endl << "Path: " << textureFilePath << endl;
-            } else {
-                // Return a message to the user if the file could not be opened
+                LoadTexture(textureFilePath,textureFileName);
             }
-            // close
             textureDialog.Close();
+        }
+
+        // Actúa en base al estado de textureShow solo si el usuario hizo clic en el checkbox
+        if (textureShowClicked) {
+            if (textureShow) {
+                ShowTexture();
+            } else {
+                UnshowTexture();
+            }
         }
     }
 
@@ -420,6 +431,60 @@ void GeometryRender::applyParallelView(){
         P=st;
     }
 
+    display();
+}
+
+/**Loads the texture**/
+void GeometryRender::LoadTexture(const std::string &filepath, const std::string &filename) {
+    int width, height, channels;
+
+    // Construye la ruta completa al archivo de la textura
+    std::string fullFilePath = filepath + "/" + filename;
+
+    unsigned char* data = stbi_load(fullFilePath.c_str(), &width, &height, &channels, 0);
+    std::cout << "Loading texture from: " << fullFilePath << std::endl;
+    if (data) {
+        glGenTextures(1, &locTexture);
+        glBindTexture(GL_TEXTURE_2D, locTexture);
+
+        // Asumiendo formato RGB/RGBA basado en número de canales
+        GLenum format;
+        if(channels == 4) {
+            format = GL_RGBA;
+        } else if(channels == 3) {
+            format = GL_RGB;
+        } else {
+            std::cerr << "Unsupported texture format" << std::endl;
+        }
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(data); // Liberar datos de la imagen
+    } else {
+        std::cerr << "Failed to load texture: " << fullFilePath << std::endl;
+        std::cerr << "STBI Failure Reason: " << stbi_failure_reason() << std::endl;
+    }
+
+    // Desenlazar textura después de cargarla para prevenir cambios accidentales
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+/**Show the texture in the screen**/
+void GeometryRender::ShowTexture() {
+    // Asegúrate de que la textura ha sido cargada
+    if (locTexture != 0) {
+        glActiveTexture(GL_TEXTURE0); // Activa la textura en la unidad 0
+        glBindTexture(GL_TEXTURE_2D, locTexture);
+    }
+    display();
+}
+
+/**Stop showing the texture in the screen**/
+void GeometryRender::UnshowTexture() {
+    // Desenlazar la textura actual de la unidad 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     display();
 }
 

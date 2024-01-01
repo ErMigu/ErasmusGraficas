@@ -45,7 +45,7 @@ class matrixRoutinesAndOBJ { public:
 
 
     /**Reads the OBJfile**/
-    static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<glm::vec4>& normals, std::vector<unsigned int>& indices,  std::vector<unsigned int>& indicesN) {
+    static void readOBJ(const std::string& name, std::vector<glm::vec4>& vertices, std::vector<glm::vec4>& normals, std::vector<unsigned int>& indices,  std::vector<unsigned int>& indicesN, std::vector<glm::vec2>& textcoords) {
         std::vector<glm::vec4> normalsAux;
         vertices.clear();
         normals.clear();
@@ -69,7 +69,6 @@ class matrixRoutinesAndOBJ { public:
                 glm::vec4 normal;
                 lineStream >> normal.x >> normal.y >> normal.z;
                 normals.push_back(glm::vec4(normal.x,normal.y,normal.z,0.0f));
-                std::cout<<"BOMA";
             } else if (prefix == "f") { //MAIN LOOPS RN
                 char nextChar;
                 std::vector<unsigned int> aux;
@@ -86,12 +85,7 @@ class matrixRoutinesAndOBJ { public:
                     aux.push_back(index-1);
                 }
 
-                for (int i = 0; i < aux.size(); ++i) {
-                    std::cout << aux[i] << " ";
-                }std::cout << aux.size() << " " << normals.size() << std::endl;
-
                 if (normals.empty()==false) { //CASE WE NEED TO READ NORMALS INDEX
-                    std::cout<<"a";
                     if (aux.size() == 6) { //CASE X//X X//X X//X
                         indices.push_back(aux[0]); indices.push_back(aux[2]); indices.push_back(aux[4]);
                         indicesN.push_back(aux[1]); indicesN.push_back(aux[3]); indicesN.push_back(aux[5]);
@@ -111,7 +105,6 @@ class matrixRoutinesAndOBJ { public:
                     }
 
                 } else { //CASE WE NEED TO CALCULATE NORMALS
-                    std::cout<<"b";
                     if (aux.size() == 3) { //CASE X X X
                         indices.push_back(aux[0]); indices.push_back(aux[1]); indices.push_back(aux[2]);
                     } else if (aux.size() == 4) { //CASE X X X X
@@ -165,7 +158,13 @@ class matrixRoutinesAndOBJ { public:
         }
         normalizeObject(vertices,normals,true);
 
-        std::cout << "Imprimiendo coordenadas de los vertices:" << std::endl;
+        for (const auto& vertex : vertices) {
+            float u = atan2(vertex.z, vertex.x) / (2 * M_PI) + 0.5f;
+            float v = asin(vertex.y) / M_PI + 0.5f;
+            textcoords.push_back(glm::vec2(u, v));
+        }
+
+        /*std::cout << "Imprimiendo coordenadas de los vertices:" << std::endl;
         for(int i = 0; i < vertices.size(); i++){
             std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
         }
@@ -187,8 +186,7 @@ class matrixRoutinesAndOBJ { public:
         for(int i = 0; i < indicesN.size(); i++){
             std::cout << indicesN[i] << " ";
         }
-        std::cout << std::endl;
-
+        std::cout << std::endl;*/
     }
 
     /**Make it fits in a 1x1x1 cube and center y the 0,0,0**/
